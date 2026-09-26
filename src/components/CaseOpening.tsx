@@ -205,7 +205,7 @@ export default function CaseOpening({ coins, onSpend, onItemWon, onClose }: Case
         </button>
         <div>
           <h2 style={{ margin: 0, fontFamily: 'Playfair Display, serif', fontSize: '1.1rem', color: '#f0abfc' }}>
-            Fashion Wardrobe
+            Модный шкаф
           </h2>
           <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 1 }}>
             <span style={{ color: '#fbbf24', fontSize: '0.75rem' }}>🪙</span>
@@ -218,7 +218,7 @@ export default function CaseOpening({ coins, onSpend, onItemWon, onClose }: Case
       {phase === 'select' && (
         <div style={{ flex: 1, overflow: 'auto', padding: '8px 16px 24px' }}>
           <p style={{ color: '#9d7fc0', fontSize: '0.75rem', textAlign: 'center', marginBottom: 16, letterSpacing: '0.05em' }}>
-            Choose a wardrobe to open
+            Выберите шкаф для открытия
           </p>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -261,7 +261,7 @@ export default function CaseOpening({ coins, onSpend, onItemWon, onClose }: Case
                       marginBottom: 2,
                     }}>
                       {c.name}
-                      {c.premium && <span style={{ marginLeft: 6, fontSize: '0.6rem', color: '#f0abfc', background: 'rgba(240,171,252,0.1)', padding: '1px 6px', borderRadius: 10, border: '1px solid rgba(240,171,252,0.3)' }}>PREMIUM</span>}
+                      {c.premium && <span style={{ marginLeft: 6, fontSize: '0.6rem', color: '#f0abfc', background: 'rgba(240,171,252,0.1)', padding: '1px 6px', borderRadius: 10, border: '1px solid rgba(240,171,252,0.3)' }}>ПРЕМИУМ</span>}
                     </div>
                     <div style={{ color: '#9d7fc0', fontSize: '0.7rem' }}>{c.description}</div>
                   </div>
@@ -308,12 +308,12 @@ export default function CaseOpening({ coins, onSpend, onItemWon, onClose }: Case
               transition: 'all 0.2s',
             }}
           >
-            {selectedCase.premium ? '💳 Purchase Premium' : coins < selectedCase.cost ? `Need ${(selectedCase.cost - coins).toLocaleString()} more 🪙` : '✨ Open Wardrobe'}
+            {selectedCase.premium ? '💳 Купить премиум' : coins < selectedCase.cost ? `Нужно ещё ${(selectedCase.cost - coins).toLocaleString()} 🪙` : '✨ Открыть шкаф'}
           </button>
 
           {/* Rarity legend */}
           <div style={{ marginTop: 16, padding: '10px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.05)' }}>
-            <div style={{ color: '#5b4b7a', fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Rarity chances</div>
+            <div style={{ color: '#5b4b7a', fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Шансы редкости</div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               {(['common', 'rare', 'mythic', 'legendary', 'star'] as Rarity[]).map(r => {
                 const cfg = RARITY_CONFIG[r];
@@ -334,7 +334,7 @@ export default function CaseOpening({ coins, onSpend, onItemWon, onClose }: Case
       {(phase === 'spinning' || phase === 'result') && (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
           <div style={{ color: '#9d7fc0', fontSize: '0.75rem', letterSpacing: '0.1em', marginBottom: 16, textTransform: 'uppercase' }}>
-            {phase === 'spinning' ? '✦ Opening wardrobe...' : '✦ You received'}
+            {phase === 'spinning' ? '✦ Открываем шкаф...' : '✦ Вы получили'}
           </div>
 
           {/* Roulette container */}
@@ -405,9 +405,11 @@ export default function CaseOpening({ coins, onSpend, onItemWon, onClose }: Case
                   >
                     <div
                       className={isWinner ? rarityGlowClass(item.rarity) : ''}
-                      style={{ fontSize: '1.8rem' }}
+                      style={{ fontSize: '1.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                     >
-                      {item.emoji}
+                      {item.image
+                        ? <img src={item.image} alt={item.name} style={{ maxWidth: '70%', maxHeight: '70%', objectFit: 'contain' }} />
+                        : item.emoji}
                     </div>
                     <div style={{
                       fontSize: '0.6rem',
@@ -453,9 +455,11 @@ export default function CaseOpening({ coins, onSpend, onItemWon, onClose }: Case
             }}>
               <div
                 className={rarityGlowClass(winner.rarity)}
-                style={{ fontSize: '2.5rem', flexShrink: 0 }}
+                style={{ fontSize: '2.5rem', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
-                {winner.emoji}
+                {winner.image
+                  ? <img src={winner.image} alt={winner.name} style={{ maxWidth: '70%', maxHeight: '70%', objectFit: 'contain' }} />
+                  : winner.emoji}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{
@@ -505,7 +509,7 @@ export default function CaseOpening({ coins, onSpend, onItemWon, onClose }: Case
                   cursor: 'pointer',
                 }}
               >
-                Open Again
+                Открыть ещё
               </button>
               <button
                 onClick={onClose}
@@ -523,7 +527,7 @@ export default function CaseOpening({ coins, onSpend, onItemWon, onClose }: Case
                   boxShadow: '0 4px 16px rgba(124,58,237,0.4)',
                 }}
               >
-                ← Back to Room
+                ← В комнату
               </button>
             </div>
           )}
@@ -583,9 +587,14 @@ export default function CaseOpening({ coins, onSpend, onItemWon, onClose }: Case
               fontSize: '5rem',
               animation: 'star-burst 0.6s cubic-bezier(0.34,1.56,0.64,1) forwards, star-cycle 2s linear infinite 0.6s',
               zIndex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
-            {winner.emoji}
+            {winner.image
+              ? <img src={winner.image} alt={winner.name} style={{ maxWidth: '70%', maxHeight: '70%', objectFit: 'contain' }} />
+              : winner.emoji}
           </div>
 
           <div style={{
@@ -631,7 +640,7 @@ export default function CaseOpening({ coins, onSpend, onItemWon, onClose }: Case
               fontWeight: 600,
               cursor: 'pointer',
               fontFamily: 'Poppins, sans-serif',
-            }}>Open Again</button>
+            }}>Открыть ещё</button>
             <button onClick={onClose} style={{
               padding: '12px 20px',
               borderRadius: 14,
@@ -643,7 +652,7 @@ export default function CaseOpening({ coins, onSpend, onItemWon, onClose }: Case
               cursor: 'pointer',
               fontFamily: 'Poppins, sans-serif',
               boxShadow: '0 4px 20px rgba(192,38,211,0.5)',
-            }}>← Back to Room</button>
+            }}>← В комнату</button>
           </div>
         </div>
       )}

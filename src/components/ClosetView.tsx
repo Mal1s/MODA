@@ -7,12 +7,12 @@ interface ClosetViewProps {
 }
 
 const TYPE_LABELS: Record<ItemType, string> = {
-  top: 'Tops',
-  bottom: 'Bottoms',
-  dress: 'Dresses',
-  shoes: 'Shoes',
-  accessory: 'Accessories',
-  bag: 'Bags',
+  top: 'Верх',
+  bottom: 'Низ',
+  dress: 'Платья',
+  shoes: 'Обувь',
+  accessory: 'Аксессуары',
+  bag: 'Сумки',
 };
 
 const RARITY_ORDER: Rarity[] = ['star', 'legendary', 'mythic', 'rare', 'common'];
@@ -69,10 +69,10 @@ export default function ClosetView({ inventory, onClose }: ClosetViewProps) {
         </button>
         <div style={{ flex: 1 }}>
           <h2 style={{ margin: 0, fontFamily: 'Playfair Display, serif', fontSize: '1.1rem', color: '#f0abfc' }}>
-            My Closet
+            Мой шкаф
           </h2>
           <div style={{ color: '#6b5a8a', fontSize: '0.65rem', marginTop: 1 }}>
-            {inventory.length} items · 🪙 {totalValue.toLocaleString()} total value
+            {inventory.length} предметов · 🪙 {totalValue.toLocaleString()} общая стоимость
           </div>
         </div>
       </div>
@@ -90,7 +90,7 @@ export default function ClosetView({ inventory, onClose }: ClosetViewProps) {
         }}>
           <div style={{ fontSize: '3rem' }}>👗</div>
           <p style={{ margin: 0, fontSize: '0.85rem', textAlign: 'center' }}>
-            Your closet is empty.<br />Open some wardrobes to fill it!
+            Ваш шкаф пуст.<br />Откройте несколько шкафов, чтобы наполнить его!
           </p>
           <button onClick={onClose} style={{
             marginTop: 8,
@@ -102,7 +102,7 @@ export default function ClosetView({ inventory, onClose }: ClosetViewProps) {
             cursor: 'pointer',
             fontSize: '0.85rem',
           }}>
-            ← Back to Room
+            ← В комнату
           </button>
         </div>
       )}
@@ -143,7 +143,7 @@ export default function ClosetView({ inventory, onClose }: ClosetViewProps) {
                     gap: 4,
                   }}
                 >
-                  <span>{r === 'all' ? 'All' : cfg!.label}</span>
+                  <span>{r === 'all' ? 'Все' : cfg!.label}</span>
                   <span style={{ opacity: 0.7 }}>({count})</span>
                 </button>
               );
@@ -193,7 +193,7 @@ export default function ClosetView({ inventory, onClose }: ClosetViewProps) {
                     }
                     style={{ fontSize: '1.8rem' }}
                   >
-                    {item.emoji}
+                    {item.image ? <img src={item.image} alt={item.name} style={{ maxWidth: '60%', maxHeight: '60%', objectFit: 'contain' }} /> : item.emoji}
                   </div>
                   <div style={{
                     fontSize: '0.6rem',
@@ -247,7 +247,7 @@ export default function ClosetView({ inventory, onClose }: ClosetViewProps) {
                 }
                 style={{ fontSize: '2.2rem', flexShrink: 0 }}
               >
-                {selected.emoji}
+                {selected.image ? <img src={selected.image} alt={selected.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} /> : selected.emoji}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '0.9rem', fontWeight: 700, color: '#f0e6ff' }}>
