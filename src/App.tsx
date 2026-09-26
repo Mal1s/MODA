@@ -5,10 +5,11 @@ import RoomScene from './components/RoomScene';
 import StreetScene from './components/StreetScene';
 import CaseOpening from './components/CaseOpening';
 import ClosetView from './components/ClosetView';
+import MarketScene from './components/MarketScene';
 import { ClothingItem } from './gameData';
 
 type View = 'landing' | 'game';
-type Scene = 'select' | 'room' | 'street' | 'wardrobe' | 'closet';
+type Scene = 'select' | 'room' | 'street' | 'market' | 'wardrobe' | 'closet';
 
 interface FloatingCoin {
   id: number;
@@ -61,6 +62,11 @@ export default function App() {
   }, []);
 
   const handleItemWon = useCallback((item: ClothingItem) => {
+    setInventory(prev => [...prev, item]);
+  }, []);
+
+  const handleMarketBuy = useCallback((item: ClothingItem) => {
+    setCoins(current => Math.max(0, current - item.value));
     setInventory(prev => [...prev, item]);
   }, []);
 
@@ -160,6 +166,16 @@ export default function App() {
             gender={gender}
             coins={coins}
             onBack={() => setScene('room')}
+            onMarketReached={() => setScene('market')}
+          />
+        )}
+
+        {scene === 'market' && (
+          <MarketScene
+            key="market"
+            coins={coins}
+            onBack={() => setScene('street')}
+            onBuy={handleMarketBuy}
           />
         )}
 

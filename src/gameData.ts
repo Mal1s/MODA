@@ -74,15 +74,15 @@ export const RARITY_CONFIG: Record<Rarity, {
 };
 
 export const ITEMS: ClothingItem[] = [
-  { id: 'c1', name: 'Striped Tee', type: 'top', rarity: 'common', emoji: '👕', value: 10, color: '#6b7280', description: 'A simple striped t-shirt' },
-  { id: 'c2', name: 'Basic Jeans', type: 'bottom', rarity: 'common', emoji: '👖', value: 12, color: '#1d4ed8', description: 'Everyday blue denim' },
+  { id: 'c1', name: 'Худи оверсайз', type: 'top', rarity: 'common', emoji: '🧥', value: 10, color: '#d8d2c8', description: 'Мягкое худи свободного кроя' },
+  { id: 'c2', name: 'Твидовая юбка', type: 'bottom', rarity: 'common', emoji: '👗', value: 12, color: '#9a6848', description: 'Юбка-карандаш с фактурой твида' },
   { id: 'c3', name: 'White Sneakers', type: 'shoes', rarity: 'common', emoji: '👟', value: 15, color: '#f3f4f6', description: 'Fresh white canvas sneakers' },
   { id: 'c4', name: 'Canvas Tote', type: 'bag', rarity: 'common', emoji: '🛍️', value: 8, color: '#d4a574', description: 'Simple cotton tote bag' },
   { id: 'c5', name: 'Floral Blouse', type: 'top', rarity: 'common', emoji: '👚', value: 18, color: '#fb7185', description: 'Light summer blouse with flowers' },
 
   { id: 'r1', name: 'Silk Cami', type: 'top', rarity: 'rare', emoji: '👗', value: 80, color: '#7dd3fc', description: 'Delicate silk camisole, sky blue' },
-  { id: 'r2', name: 'High-Heel Mules', type: 'shoes', rarity: 'rare', emoji: '👡', value: 120, color: '#c4a882', description: 'Italian leather block-heel mules' },
-  { id: 'r3', name: 'Pearl Chain', type: 'accessory', rarity: 'rare', emoji: '📿', value: 150, color: '#f3f4f6', description: 'Double-strand pearl choker' },
+  { id: 'r2', name: 'Ботильоны Noir', type: 'shoes', rarity: 'rare', emoji: '👢', value: 120, color: '#1c1b1a', description: 'Чёрные ботильоны на массивном каблуке' },
+  { id: 'r3', name: 'Клатч с цепочкой', type: 'bag', rarity: 'rare', emoji: '👜', value: 150, color: '#b9c8d8', description: 'Серебристый клатч с чешуйчатой фактурой' },
   { id: 'r4', name: 'Leather Mini', type: 'bottom', rarity: 'rare', emoji: '👗', value: 200, color: '#292524', description: 'Sleek black leather mini-skirt' },
   { id: 'r5', name: 'Satin Blazer', type: 'top', rarity: 'rare', emoji: '🥼', value: 250, color: '#f9a8d4', description: 'Blush pink satin oversized blazer' },
 

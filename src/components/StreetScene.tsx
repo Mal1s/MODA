@@ -7,6 +7,7 @@ interface StreetSceneProps {
   gender: 'female' | 'male';
   coins: number;
   onBack: () => void;
+  onMarketReached: () => void;
 }
 
 interface Location {
@@ -27,7 +28,7 @@ const LOCATIONS: Location[] = [
   { id: 'auction', label: 'Auction', emoji: '🔨', description: 'Bid & win rare items', color: '#1a3d1a', glowColor: '#22c55e', x: 80, comingSoon: true },
 ];
 
-export default function StreetScene({ gender, coins, onBack }: StreetSceneProps) {
+export default function StreetScene({ gender, coins, onBack, onMarketReached }: StreetSceneProps) {
   const [charTarget, setCharTarget] = useState<StreetTarget>('idle');
   const [charX, setCharX] = useState(20);
   const [walking, setWalking] = useState(false);
@@ -49,10 +50,11 @@ export default function StreetScene({ gender, coins, onBack }: StreetSceneProps)
 
       if (target === 'home') {
         onBack();
-      } else if (target === 'market' || target === 'shop') {
-        setNotification(`${target === 'market' ? '🛍️ Market' : '👗 Boutique'} — Coming soon! More fashion drops await.`);
+      } else if (target === 'market') {
+        onMarketReached();
+      } else if (target === 'shop') {
+        setNotification('👗 Boutique — Coming soon! Luxury fashion drops await.');
         setTimeout(() => setNotification(null), 3000);
-        // Walk back to center
         setTimeout(() => {
           setFacing('left');
           setWalking(true);
