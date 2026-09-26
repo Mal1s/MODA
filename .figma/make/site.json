@@ -1,0 +1,10 @@
+{
+  "description": "Transforms project files and design into a polished, user-friendly web application that enhances usability and visual appeal for end users.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
