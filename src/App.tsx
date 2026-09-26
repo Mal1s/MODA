@@ -6,10 +6,13 @@ import StreetScene from './components/StreetScene';
 import CaseOpening from './components/CaseOpening';
 import ClosetView from './components/ClosetView';
 import MarketScene from './components/MarketScene';
+import AuctionScene from './components/AuctionScene';
+import FusionScene from './components/FusionScene';
 import { ClothingItem } from './gameData';
+import { supabase } from './supabaseClient';
 
 type View = 'landing' | 'game';
-type Scene = 'select' | 'room' | 'street' | 'market' | 'wardrobe' | 'closet';
+type Scene = 'select' | 'room' | 'street' | 'market' | 'auction' | 'fusion' | 'wardrobe' | 'closet';
 
 interface FloatingCoin {
   id: number;
@@ -27,9 +30,80 @@ export default function App() {
   const [energy, setEnergy] = useState(ENERGY_MAX);
   const [inventory, setInventory] = useState<ClothingItem[]>([]);
   const [floatingCoins, setFloatingCoins] = useState<FloatingCoin[]>([]);
+  const [loaded, setLoaded] = useState(false);
   const coinIdRef = useRef(0);
   const energyRef = useRef(energy);
   energyRef.current = energy;
+
+  // Load saved state from Supabase
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data: stateData } = await supabase
+          .from('player_state')
+          .select('*')
+          .eq('id', 'default')
+          .maybeSingle();
+        if (stateData) {
+          setCoins(stateData.coins);
+          setEnergy(stateData.energy);
+          if (stateData.gender === 'male' || stateData.gender === 'female') {
+            setGender(stateData.gender);
+          }
+        }
+        const { data: invData } = await supabase
+          .from('inventory')
+          .select('*')
+          .order('created_at', { ascending: true });
+        if (invData && invData.length > 0) {
+          setInventory(invData.map((row: { item_id: string; name: string; type: string; rarity: string; emoji: string; value: number; color: string; description: string }) => ({
+            id: row.item_id,
+            name: row.name,
+            type: row.type as ClothingItem['type'],
+            rarity: row.rarity as ClothingItem['rarity'],
+            emoji: row.emoji,
+            value: row.value,
+            color: row.color,
+            description: row.description,
+          })));
+        }
+      } catch {
+        // Offline or DB not ready — continue with defaults
+      }
+      setLoaded(true);
+    })();
+  }, []);
+
+  // Persist coins/energy/gender
+  useEffect(() => {
+    if (!loaded) return;
+    supabase
+      .from('player_state')
+      .upsert({ id: 'default', coins, energy, gender: gender ?? 'female', updated_at: new Date().toISOString() })
+      .then();
+  }, [coins, energy, gender, loaded]);
+
+  // Persist inventory
+  useEffect(() => {
+    if (!loaded) return;
+    (async () => {
+      await supabase.from('inventory').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      if (inventory.length > 0) {
+        await supabase.from('inventory').insert(
+          inventory.map(item => ({
+            item_id: item.id,
+            name: item.name,
+            type: item.type,
+            rarity: item.rarity,
+            emoji: item.emoji,
+            value: item.value,
+            color: item.color,
+            description: item.description,
+          }))
+        );
+      }
+    })();
+  }, [inventory, loaded]);
 
   // Energy regen
   useEffect(() => {
@@ -68,6 +142,19 @@ export default function App() {
   const handleMarketBuy = useCallback((item: ClothingItem) => {
     setCoins(current => Math.max(0, current - item.value));
     setInventory(prev => [...prev, item]);
+  }, []);
+
+  const handleAuctionWin = useCallback((item: ClothingItem, cost: number) => {
+    setCoins(current => Math.max(0, current - cost));
+    setInventory(prev => [...prev, item]);
+  }, []);
+
+  const handleFusionResult = useCallback((newItem: ClothingItem, consumed: ClothingItem[]) => {
+    const consumedIds = new Set(consumed.map(c => c.id));
+    setInventory(prev => {
+      const filtered = prev.filter(item => !consumedIds.has(item.id));
+      return [...filtered, newItem];
+    });
   }, []);
 
   const handlePlayDemo = () => {
@@ -167,6 +254,8 @@ export default function App() {
             coins={coins}
             onBack={() => setScene('room')}
             onMarketReached={() => setScene('market')}
+            onAuctionReached={() => setScene('auction')}
+            onFusionReached={() => setScene('fusion')}
           />
         )}
 
@@ -176,6 +265,24 @@ export default function App() {
             coins={coins}
             onBack={() => setScene('street')}
             onBuy={handleMarketBuy}
+          />
+        )}
+
+        {scene === 'auction' && (
+          <AuctionScene
+            key="auction"
+            coins={coins}
+            onBack={() => setScene('street')}
+            onWin={handleAuctionWin}
+          />
+        )}
+
+        {scene === 'fusion' && (
+          <FusionScene
+            key="fusion"
+            inventory={inventory}
+            onBack={() => setScene('street')}
+            onResult={handleFusionResult}
           />
         )}
 

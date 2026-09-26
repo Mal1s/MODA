@@ -1,13 +1,15 @@
 import { useState, useCallback } from 'react';
 import Character from './Character';
 
-type StreetTarget = 'idle' | 'shop' | 'market' | 'auction' | 'home';
+type StreetTarget = 'idle' | 'shop' | 'market' | 'auction' | 'fusion' | 'home';
 
 interface StreetSceneProps {
   gender: 'female' | 'male';
   coins: number;
   onBack: () => void;
   onMarketReached: () => void;
+  onAuctionReached: () => void;
+  onFusionReached: () => void;
 }
 
 interface Location {
@@ -23,12 +25,13 @@ interface Location {
 
 const LOCATIONS: Location[] = [
   { id: 'home', label: 'Home', emoji: '🏠', description: 'Your cozy room', color: '#4b3080', glowColor: '#7c3aed', x: 8 },
-  { id: 'market', label: 'Market', emoji: '🛍️', description: 'Buy directly', color: '#1e4d80', glowColor: '#3b82f6', x: 32 },
-  { id: 'shop', label: 'Boutique', emoji: '👗', description: 'Luxury fashion', color: '#3d1a60', glowColor: '#c084fc', x: 56 },
-  { id: 'auction', label: 'Auction', emoji: '🔨', description: 'Bid & win rare items', color: '#1a3d1a', glowColor: '#22c55e', x: 80, comingSoon: true },
+  { id: 'market', label: 'Market', emoji: '🛍️', description: 'Buy directly', color: '#1e4d80', glowColor: '#3b82f6', x: 28 },
+  { id: 'fusion', label: 'Fusion', emoji: '⚗️', description: 'Merge items to upgrade', color: '#3d1a50', glowColor: '#a855f7', x: 48 },
+  { id: 'auction', label: 'Auction', emoji: '🔨', description: 'Bid & win rare items', color: '#1a3d1a', glowColor: '#22c55e', x: 68 },
+  { id: 'shop', label: 'Boutique', emoji: '👗', description: 'Luxury fashion', color: '#3d1a60', glowColor: '#c084fc', x: 88, comingSoon: true },
 ];
 
-export default function StreetScene({ gender, coins, onBack, onMarketReached }: StreetSceneProps) {
+export default function StreetScene({ gender, coins, onBack, onMarketReached, onAuctionReached, onFusionReached }: StreetSceneProps) {
   const [charTarget, setCharTarget] = useState<StreetTarget>('idle');
   const [charX, setCharX] = useState(20);
   const [walking, setWalking] = useState(false);
@@ -52,17 +55,12 @@ export default function StreetScene({ gender, coins, onBack, onMarketReached }: 
         onBack();
       } else if (target === 'market') {
         onMarketReached();
+      } else if (target === 'auction') {
+        onAuctionReached();
+      } else if (target === 'fusion') {
+        onFusionReached();
       } else if (target === 'shop') {
         setNotification('👗 Boutique — Coming soon! Luxury fashion drops await.');
-        setTimeout(() => setNotification(null), 3000);
-        setTimeout(() => {
-          setFacing('left');
-          setWalking(true);
-          setCharX(20);
-          setTimeout(() => { setWalking(false); setFacing('forward'); }, 700);
-        }, 400);
-      } else if (target === 'auction') {
-        setNotification('🔨 Auction House — Opening soon! Bid on legendary items.');
         setTimeout(() => setNotification(null), 3000);
         setTimeout(() => {
           setFacing('left');
