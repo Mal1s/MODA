@@ -32,7 +32,7 @@ export default function AuctionScene({ coins, onBack, onWin }: AuctionSceneProps
   const [hammerFlash, setHammerFlash] = useState(false);
   const [won, setWon] = useState<ClothingItem | null>(null);
   const [wonCost, setWonCost] = useState(0);
-  const [auctioneerText, setAuctioneerText] = useState('Welcome. Our first lot is ready.');
+  const [auctioneerText, setAuctioneerText] = useState('Welcome. The first lot is ready.');
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const bidStepRef = useRef(0);
 
@@ -56,7 +56,7 @@ export default function AuctionScene({ coins, onBack, onWin }: AuctionSceneProps
     setHighestBidder('Auctioneer');
     setTimer(15);
     setPhase('bidding');
-    setAuctioneerText(`Starting at ${startBid} coins. Do I hear more?`);
+    setAuctioneerText(`Starting at ${startBid} coins. Who will bid more?`);
     bidStepRef.current = 0;
   };
 
@@ -69,7 +69,7 @@ export default function AuctionScene({ coins, onBack, onWin }: AuctionSceneProps
         if (next <= 0) {
           if (timerRef.current) clearInterval(timerRef.current);
           setPhase('hammer');
-          setAuctioneerText('Going once... going twice...');
+          setAuctioneerText('Going once... Going twice...');
           setTimeout(() => {
             setHammerFlash(true);
             setTimeout(() => setHammerFlash(false), 400);
@@ -78,7 +78,7 @@ export default function AuctionScene({ coins, onBack, onWin }: AuctionSceneProps
               setWon(currentLot);
               setWonCost(currentBid);
               onWin(currentLot, currentBid);
-              setAuctioneerText(`Sold to You for ${currentBid} coins!`);
+              setAuctioneerText(`Sold to you for ${currentBid} coins!`);
             } else {
               setWon(null);
               setAuctioneerText(`Sold to ${highestBidder} for ${currentBid} coins.`);
@@ -100,7 +100,7 @@ export default function AuctionScene({ coins, onBack, onWin }: AuctionSceneProps
           setTimeout(() => setNpcs(prev => prev.map(n => ({ ...n, active: false }))), 600);
           setCurrentBid(newBid);
           setHighestBidder(NPC_NAMES[npcIdx]);
-          setAuctioneerText(`${NPC_NAMES[npcIdx]} bids ${newBid}. Do I hear more?`);
+          setAuctioneerText(`${NPC_NAMES[npcIdx]} bids ${newBid}. Who will bid more?`);
         }
         return next;
       });
@@ -115,7 +115,7 @@ export default function AuctionScene({ coins, onBack, onWin }: AuctionSceneProps
     const newBid = currentBid + 20;
     setCurrentBid(newBid);
     setHighestBidder('You');
-    setAuctioneerText(`You bid ${newBid}. Any more?`);
+    setAuctioneerText('You bid ' + newBid + '. Who will bid more?');
   };
 
   const nextLot = () => {
@@ -124,7 +124,7 @@ export default function AuctionScene({ coins, onBack, onWin }: AuctionSceneProps
     setPhase('idle');
     setWon(null);
     setWonCost(0);
-    setAuctioneerText('Next lot is ready.');
+    setAuctioneerText('The next lot is ready.');
   };
 
   const canBid = phase === 'bidding' && coins >= currentBid + 20 && highestBidder !== 'You';
@@ -167,7 +167,7 @@ export default function AuctionScene({ coins, onBack, onWin }: AuctionSceneProps
         <div style={{ fontSize: '0.6rem', color: cfg.color, fontWeight: 700, marginTop: 2 }}>{cfg.label}</div>
       </div>
 
-      {/* Auctioneer */}
+      {/* Аукционист */}
       <div style={{ position: 'absolute', top: '20%', left: '12%', zIndex: 4 }}>
         <div style={{ width: 36, height: 36, borderRadius: '50%', background: '#e5b991', border: '2px solid #c4a030', position: 'relative' }}>
           <div style={{ position: 'absolute', top: -8, left: 4, width: 28, height: 14, borderRadius: '50% 50% 20% 20%', background: '#2a1a10' }} />
@@ -182,12 +182,12 @@ export default function AuctionScene({ coins, onBack, onWin }: AuctionSceneProps
           <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', transition: 'transform 0.3s', transform: npc.active ? 'translateY(-12px)' : 'translateY(0)' }}>
             <div style={{ width: 24, height: 24, borderRadius: '50%', background: npc.color, opacity: 0.8, boxShadow: npc.active ? `0 0 12px ${npc.color}` : 'none', border: '1px solid rgba(255,255,255,0.2)' }} />
             <div style={{ width: 32, height: 40, background: npc.color, opacity: 0.5, borderRadius: '6px 6px 0 0' }} />
-            {npc.active && <div style={{ fontSize: '0.5rem', color: npc.color, fontWeight: 700, marginTop: 2 }}>{npc.name} bids {npc.bidAmount}</div>}
+            {npc.active && <div style={{ fontSize: '0.5rem', color: npc.color, fontWeight: 700, marginTop: 2 }}>{npc.name} bid {npc.bidAmount}</div>}
           </div>
         ))}
       </div>
 
-      {/* Auctioneer speech bubble */}
+      {/* Аукционист speech bubble */}
       <div style={{ position: 'absolute', top: '38%', left: '50%', transform: 'translateX(-50%)', background: 'rgba(19,13,42,0.92)', border: '1px solid rgba(240,171,252,0.3)', borderRadius: 12, padding: '8px 16px', color: '#f0e6ff', fontSize: '0.72rem', maxWidth: 280, textAlign: 'center', zIndex: 5, backdropFilter: 'blur(8px)' }}>
         {auctioneerText}
       </div>
@@ -213,7 +213,7 @@ export default function AuctionScene({ coins, onBack, onWin }: AuctionSceneProps
         <div style={{ position: 'absolute', bottom: '20%', left: '50%', transform: 'translateX(-50%)', textAlign: 'center', zIndex: 5 }}>
           <div style={{ color: '#9d7fc0', fontSize: '0.6rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Current bid</div>
           <div style={{ fontSize: '1.6rem', fontWeight: 900, color: highestBidder === 'You' ? '#fbbf24' : '#f0e6ff' }}>🪙 {currentBid.toLocaleString()}</div>
-          <div style={{ fontSize: '0.65rem', color: highestBidder === 'You' ? '#fbbf24' : '#9d7fc0' }}>Highest: {highestBidder}</div>
+          <div style={{ fontSize: '0.65rem', color: highestBidder === 'You' ? '#fbbf24' : '#9d7fc0' }}>Leader: {highestBidder}</div>
         </div>
       )}
 
@@ -238,7 +238,7 @@ export default function AuctionScene({ coins, onBack, onWin }: AuctionSceneProps
             </div>
           )}
           <button onClick={nextLot} style={{ marginTop: 10, padding: '10px 24px', borderRadius: 14, border: 'none', background: 'linear-gradient(135deg, #7c3aed, #c026d3)', color: 'white', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', boxShadow: '0 4px 16px rgba(124,58,237,0.4)' }}>
-            Next Lot →
+            Next lot →
           </button>
         </div>
       )}
@@ -250,7 +250,7 @@ export default function AuctionScene({ coins, onBack, onWin }: AuctionSceneProps
             Starting bid: 🪙 {STARTING_BIDS[currentLot.id] ?? 50}
           </div>
           <button onClick={startBidding} style={{ padding: '12px 28px', borderRadius: 14, border: 'none', background: `linear-gradient(135deg, ${cfg.color}, ${cfg.color}cc)`, color: 'white', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer', boxShadow: `0 4px 20px ${cfg.color}50` }}>
-            Start Bidding
+            Start bidding
           </button>
         </div>
       )}
@@ -269,7 +269,7 @@ export default function AuctionScene({ coins, onBack, onWin }: AuctionSceneProps
               boxShadow: canBid ? '0 4px 20px rgba(251,191,36,0.4)' : 'none',
             }}
           >
-            {highestBidder === 'You' ? `You're winning — 🪙 ${currentBid}` : canBid ? `Bid +20 🪙 (to ${currentBid + 20})` : 'Not enough coins'}
+            {highestBidder === 'You' ? `You're leading — 🪙 ${currentBid}` : canBid ? `Bid +20 🪙 (to ${currentBid + 20})` : 'Not enough coins'}
           </button>
         </div>
       )}

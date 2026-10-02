@@ -23,6 +23,7 @@ export interface Case {
   premium?: boolean;
   glowColor: string;
   image?: string;
+  dropChances: Partial<Record<Rarity, number>>;
 }
 
 import hoodieImg from './assets/items/common/Обычная_—_Худи_оверсаиз.png';
@@ -33,6 +34,9 @@ import caseBasicImg from './assets/items/common/1._Базовыи_(200🪙).png'
 import caseStandardImg from './assets/items/rare/2._Стандарт_(450🪙).png';
 import casePremiumImg from './assets/items/rare/3._Премиум_(750🪙).png';
 import caseEliteImg from './assets/items/rare/4._Элит_(1200🪙).png';
+import crownImg from './assets/items/common/crown-cutout.png';
+import suitImg from './assets/items/common/suit-cutout.png';
+import rainbowChestImg from './assets/items/common/rainbow-chest-cutout.png';
 
 export const RARITY_CONFIG: Record<Rarity, {
   label: string;
@@ -43,7 +47,7 @@ export const RARITY_CONFIG: Record<Rarity, {
   textColor: string;
 }> = {
   common: {
-    label: 'Обычная',
+    label: 'Common',
     color: '#9ca3af',
     bgColor: 'rgba(156,163,175,0.15)',
     glow: 'none',
@@ -51,7 +55,7 @@ export const RARITY_CONFIG: Record<Rarity, {
     textColor: '#d1d5db',
   },
   rare: {
-    label: 'Редкая',
+    label: 'Rare',
     color: '#60a5fa',
     bgColor: 'rgba(96,165,250,0.15)',
     glow: '0 0 15px #60a5fa, 0 0 30px rgba(59,130,246,0.5)',
@@ -59,7 +63,7 @@ export const RARITY_CONFIG: Record<Rarity, {
     textColor: '#93c5fd',
   },
   mythic: {
-    label: 'Мифическая',
+    label: 'Mythic',
     color: '#a855f7',
     bgColor: 'rgba(168,85,247,0.15)',
     glow: '0 0 20px #a855f7, 0 0 40px rgba(124,58,237,0.5)',
@@ -67,7 +71,7 @@ export const RARITY_CONFIG: Record<Rarity, {
     textColor: '#c4b5fd',
   },
   legendary: {
-    label: 'Легендарная',
+    label: 'Legendary',
     color: '#f97316',
     bgColor: 'rgba(249,115,22,0.15)',
     glow: '0 0 20px #f97316, 0 0 45px rgba(234,88,12,0.6)',
@@ -75,7 +79,7 @@ export const RARITY_CONFIG: Record<Rarity, {
     textColor: '#fed7aa',
   },
   star: {
-    label: '✦ ЗВЁЗДНАЯ ✦',
+    label: 'Star',
     color: '#f0abfc',
     bgColor: 'rgba(240,171,252,0.15)',
     glow: '0 0 30px #f0abfc, 0 0 60px #e879f9, 0 0 90px rgba(192,38,211,0.4)',
@@ -85,88 +89,94 @@ export const RARITY_CONFIG: Record<Rarity, {
 };
 
 export const ITEMS: ClothingItem[] = [
-  { id: 'c1', name: 'Худи оверсайз', type: 'top', rarity: 'common', emoji: '🧥', value: 10, color: '#d8d2c8', image: hoodieImg, description: 'Мягкое худи свободного кроя' },
-  { id: 'c2', name: 'Твидовая юбка', type: 'bottom', rarity: 'common', emoji: '👗', value: 12, color: '#9a6848', image: skirtImg, description: 'Юбка-карандаш с фактурой твида' },
-  { id: 'c3', name: 'Белые кеды', type: 'shoes', rarity: 'common', emoji: '👟', value: 15, color: '#f3f4f6', description: 'Свежие белые кроссовки' },
-  { id: 'c4', name: 'Холщовая сумка', type: 'bag', rarity: 'common', emoji: '🛍️', value: 8, color: '#d4a574', description: 'Простая хлопковая сумка-шоппер' },
-  { id: 'c5', name: 'Цветочная блуза', type: 'top', rarity: 'common', emoji: '👚', value: 18, color: '#fb7185', description: 'Лёгкая летняя блуза с цветами' },
+  { id: 'c1', name: 'Oversized Hoodie', type: 'top', rarity: 'common', emoji: '🧥', value: 10, color: '#d8d2c8', image: hoodieImg, description: 'Soft oversized hoodie for everyday wear' },
+  { id: 'c2', name: 'Tweed Pencil Skirt', type: 'bottom', rarity: 'common', emoji: '👗', value: 12, color: '#9a6848', image: skirtImg, description: 'Classic pencil skirt with tweed texture' },
+  { id: 'c3', name: 'White Sneakers', type: 'shoes', rarity: 'common', emoji: '👟', value: 15, color: '#f3f4f6', description: 'Fresh white sneakers for any outfit' },
+  { id: 'c4', name: 'Canvas Tote', type: 'bag', rarity: 'common', emoji: '🛍️', value: 8, color: '#d4a574', description: 'Simple cotton tote bag' },
+  { id: 'c5', name: 'Floral Blouse', type: 'top', rarity: 'common', emoji: '👚', value: 18, color: '#fb7185', description: 'Light summer blouse with floral pattern' },
 
-  { id: 'r1', name: 'Шёлковый топ', type: 'top', rarity: 'rare', emoji: '👗', value: 80, color: '#7dd3fc', description: 'Деликатный шёлковый топ небесного цвета' },
-  { id: 'r2', name: 'Ботильоны Нуар', type: 'shoes', rarity: 'rare', emoji: '👢', value: 120, color: '#1c1b1a', image: bootsImg, description: 'Чёрные ботильоны на массивном каблуке' },
-  { id: 'r3', name: 'Клатч с цепочкой', type: 'bag', rarity: 'rare', emoji: '👜', value: 150, color: '#b9c8d8', image: clutchImg, description: 'Серебристый клатч с чешуйчатой фактурой' },
-  { id: 'r4', name: 'Кожаная мини', type: 'bottom', rarity: 'rare', emoji: '👗', value: 200, color: '#292524', description: 'Чёрная кожаная мини-юбка' },
-  { id: 'r5', name: 'Сатиновый блейзер', type: 'top', rarity: 'rare', emoji: '🥼', value: 250, color: '#f9a8d4', description: 'Розовый сатиновый оверсайз-блейзер' },
+  { id: 'r1', name: 'Silk Top', type: 'top', rarity: 'rare', emoji: '👗', value: 80, color: '#7dd3fc', description: 'Delicate sky-blue silk top' },
+  { id: 'r2', name: 'Noir Ankle Boots', type: 'shoes', rarity: 'rare', emoji: '👢', value: 120, color: '#1c1b1a', image: bootsImg, description: 'Black ankle boots on a chunky heel' },
+  { id: 'r3', name: 'Chain Clutch', type: 'bag', rarity: 'rare', emoji: '👜', value: 150, color: '#b9c8d8', image: clutchImg, description: 'Silver clutch with chain detail' },
+  { id: 'r4', name: 'Leather Mini', type: 'bottom', rarity: 'rare', emoji: '👗', value: 200, color: '#292524', description: 'Black leather mini skirt' },
+  { id: 'r5', name: 'Satin Blazer', type: 'top', rarity: 'rare', emoji: '🥼', value: 250, color: '#f9a8d4', description: 'Pink satin oversized blazer' },
 
-  { id: 'm1', name: 'Бархатный блейзер', type: 'top', rarity: 'mythic', emoji: '🥼', value: 500, color: '#6d28d9', description: 'Тёмно-фиолетовый блейзер из мятого бархата' },
-  { id: 'm2', name: 'Дизайнерская сумка', type: 'bag', rarity: 'mythic', emoji: '👜', value: 800, color: '#b45309', description: 'Стёганая сумка с золотой цепочкой' },
-  { id: 'm3', name: 'Платье из пайеток', type: 'dress', rarity: 'mythic', emoji: '👗', value: 1200, color: '#db2777', description: 'Длинное платье цвета розового золота' },
-  { id: 'm4', name: 'Ботфорты', type: 'shoes', rarity: 'mythic', emoji: '👢', value: 900, color: '#1c1917', description: 'Чёрные замшевые сапоги выше колена' },
+  { id: 'm1', name: 'Velvet Blazer', type: 'top', rarity: 'mythic', emoji: '🥼', value: 500, color: '#6d28d9', description: 'Deep purple crushed-velvet blazer' },
+  { id: 'm2', name: 'Designer Bag', type: 'bag', rarity: 'mythic', emoji: '👜', value: 800, color: '#b45309', description: 'Quilted bag with gold chain strap' },
+  { id: 'm3', name: 'Sequin Gown', type: 'dress', rarity: 'mythic', emoji: '👗', value: 1200, color: '#db2777', description: 'Long sequin gown in rose gold' },
+  { id: 'm4', name: 'Over-the-Knee Boots', type: 'shoes', rarity: 'mythic', emoji: '👢', value: 900, color: '#1c1917', description: 'Black suede boots above the knee' },
 
-  { id: 'l1', name: 'Бриллиантовые серьги', type: 'accessory', rarity: 'legendary', emoji: '💎', value: 3000, color: '#7dd3fc', description: 'Безупречные бриллиантовые серьги-капли' },
-  { id: 'l2', name: 'Кутюрное платье', type: 'dress', rarity: 'legendary', emoji: '👗', value: 5000, color: '#f59e0b', description: 'Золотое платье ручной работы' },
-  { id: 'l3', name: 'Питон-клатч', type: 'bag', rarity: 'legendary', emoji: '👛', value: 4000, color: '#15803d', description: 'Изумрудный клатч из кожи питона' },
+  { id: 'l1', name: 'Diamond Earrings', type: 'accessory', rarity: 'legendary', emoji: '💎', value: 3000, color: '#7dd3fc', description: 'Flawless diamond drop earrings' },
+  { id: 'l2', name: 'Couture Gown', type: 'dress', rarity: 'legendary', emoji: '👗', value: 5000, color: '#f59e0b', description: 'Hand-crafted golden couture gown' },
+  { id: 'l3', name: 'Python Clutch', type: 'bag', rarity: 'legendary', emoji: '👛', value: 4000, color: '#15803d', description: 'Emerald python-skin clutch' },
 
-  { id: 's1', name: 'Платье Аврора', type: 'dress', rarity: 'star', emoji: '✨', value: 25000, color: '#f0abfc', description: 'Платье, мерцающее как северное сияние' },
-  { id: 's2', name: 'Каблуки Галактика', type: 'shoes', rarity: 'star', emoji: '💫', value: 15000, color: '#c084fc', description: 'Платформы со встроенным звёздным кристаллом' },
-  { id: 's3', name: 'Небесная диадема', type: 'accessory', rarity: 'star', emoji: '👑', value: 20000, color: '#fbbf24', description: 'Драгоценная корона модной королевы' },
+  { id: 's1', name: 'Aurora Dress', type: 'dress', rarity: 'star', emoji: '✨', value: 25000, color: '#f0abfc', description: 'A dress that shimmers like the northern lights' },
+  { id: 's2', name: 'Galaxy Heels', type: 'shoes', rarity: 'star', emoji: '💫', value: 15000, color: '#c084fc', description: 'Platforms with an embedded star crystal' },
+  { id: 's3', name: 'Celestial Tiara', type: 'accessory', rarity: 'star', emoji: '👑', value: 20000, color: '#fbbf24', description: 'A precious crown for the fashion queen' },
+  { id: 's4', name: 'Constellation Crown', type: 'accessory', rarity: 'star', emoji: '👑', value: 28000, color: '#f0abfc', image: crownImg, description: 'A crown surrounded by the glow of colorful stars' },
+  { id: 's5', name: 'Cosmic Suit', type: 'dress', rarity: 'star', emoji: '🕴️', value: 32000, color: '#93c5fd', image: suitImg, description: 'A flawless suit with rainbow shimmer' },
+  { id: 's6', name: 'Rainbow Chest', type: 'accessory', rarity: 'legendary', emoji: '🧰', value: 18000, color: '#fbbf24', image: rainbowChestImg, description: 'A chest filled with shimmering treasures' },
 ];
 
 export const CASES: Case[] = [
   {
     id: 'basic',
-    name: 'Базовый шкаф',
+    name: 'Basic Case',
     cost: 200,
     emoji: '🪟',
     maxRarity: 'rare',
-    description: 'Обычные и редкие предметы гарантированы',
+    description: 'Common and rare items guaranteed',
     glowColor: '#60a5fa',
     image: caseBasicImg,
+    dropChances: { common: 0.72, rare: 0.28 },
   },
   {
     id: 'premium',
-    name: 'Премиум шкаф',
+    name: 'Premium Case',
     cost: 450,
     emoji: '🚪',
     maxRarity: 'mythic',
-    description: 'Вплоть до мифической редкости — настоящая мода начинается здесь',
+    description: 'Up to mythic rarity — real fashion starts here',
     glowColor: '#a855f7',
     image: caseStandardImg,
+    dropChances: { common: 0.5, rare: 0.32, mythic: 0.18 },
   },
   {
     id: 'luxury',
-    name: 'Элитный сейф',
+    name: 'Luxury Vault',
     cost: 750,
     emoji: '🗄️',
     maxRarity: 'legendary',
-    description: 'Легендарные предметы ждут смелого коллекционера',
+    description: 'Legendary items await the bold collector',
     glowColor: '#f97316',
     image: casePremiumImg,
+    dropChances: { common: 0.42, rare: 0.3, mythic: 0.2, legendary: 0.08 },
   },
   {
     id: 'rainbow',
-    name: 'Звёздный шкаф',
+    name: 'Star Case',
     cost: 1200,
     emoji: '🌈',
     maxRarity: 'star',
-    description: 'Все редкости — возможны ЗВЁЗДНЫЕ предметы!',
+    description: 'All rarities — Star items are possible!',
     glowColor: '#f0abfc',
     image: caseEliteImg,
+    dropChances: { common: 0.35, rare: 0.25, mythic: 0.2, legendary: 0.15, star: 0.05 },
   },
 ];
 
 const RARITY_ORDER: Rarity[] = ['common', 'rare', 'mythic', 'legendary', 'star'];
 
-export function rollItem(maxRarity: Rarity): ClothingItem {
+export function rollItem(maxRarity: Rarity, dropChances?: Partial<Record<Rarity, number>>): ClothingItem {
   const maxIdx = RARITY_ORDER.indexOf(maxRarity);
   const allowed = RARITY_ORDER.slice(0, maxIdx + 1);
-
-  const total = allowed.reduce((s, r) => s + RARITY_CONFIG[r].chance, 0);
+  const total = allowed.reduce((sum, rarity) => sum + (dropChances?.[rarity] ?? RARITY_CONFIG[rarity].chance), 0);
   const roll = Math.random() * total;
 
   let cumulative = 0;
   let selectedRarity: Rarity = 'common';
   for (const rarity of allowed) {
-    cumulative += RARITY_CONFIG[rarity].chance;
+    cumulative += dropChances?.[rarity] ?? RARITY_CONFIG[rarity].chance;
     if (roll <= cumulative) {
       selectedRarity = rarity;
       break;

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Character from './Character';
 import { ClothingItem, RARITY_CONFIG } from '../gameData';
+import { useI18n } from '../i18n';
 
 type CharTarget = 'idle' | 'wardrobe' | 'door' | 'closet';
 
@@ -27,6 +28,7 @@ export default function RoomScene({
   onDoorReached,
   onClosetClick,
 }: RoomSceneProps) {
+  const { t } = useI18n();
   const [charTarget, setCharTarget] = useState<CharTarget>('idle');
   const [charX, setCharX] = useState(42); // % from left
   const [walking, setWalking] = useState(false);
@@ -183,10 +185,10 @@ export default function RoomScene({
         <div style={{ height: 8, background: '#2a1955', marginTop: 2 }} />
       </div>
 
-      {/* ── Wardrobe (right side) ── */}
+      {/* ── Шкаф (right side) ── */}
       <div
         onClick={handleWardrobeClick}
-        onMouseEnter={() => setTooltip('Open Wardrobe')}
+        onMouseEnter={() => setTooltip(t('room.tooltip.wardrobe'))}
         onMouseLeave={() => setTooltip(null)}
         style={{
           position: 'absolute',
@@ -196,11 +198,11 @@ export default function RoomScene({
           maxWidth: 140,
           cursor: charTarget === 'idle' ? 'pointer' : 'default',
           transition: 'transform 0.2s',
-          transform: tooltip === 'Open Wardrobe' ? 'scale(1.03)' : 'scale(1)',
+          transform: tooltip === t('room.tooltip.wardrobe') ? 'scale(1.03)' : 'scale(1)',
           zIndex: 2,
         }}
       >
-        {/* Wardrobe body */}
+        {/* Шкаф body */}
         <div style={{
           background: 'linear-gradient(160deg, #2d1a5e 0%, #1e1040 100%)',
           borderRadius: '8px 8px 4px 4px',
@@ -216,7 +218,7 @@ export default function RoomScene({
           flexDirection: 'column',
           gap: 4,
         }}>
-          {/* Wardrobe top ornament */}
+          {/* Шкаф top ornament */}
           <div style={{
             position: 'absolute',
             top: -8,
@@ -294,7 +296,7 @@ export default function RoomScene({
           }} />
         </div>
 
-        {/* Wardrobe feet */}
+        {/* Шкаф feet */}
         <div style={{ display: 'flex', justifyContent: 'space-around', padding: '0 8px' }}>
           {[0, 1].map(i => (
             <div key={i} style={{ width: 8, height: 6, background: '#4b3080', borderRadius: '0 0 3px 3px' }} />
@@ -311,7 +313,7 @@ export default function RoomScene({
           textTransform: 'uppercase',
           opacity: 0.8,
         }}>
-          Wardrobe
+          {t('room.wardrobe')}
         </div>
       </div>
 
@@ -402,7 +404,7 @@ export default function RoomScene({
       {/* ── Door (left side, bottom) ── */}
       <div
         onClick={handleDoorClick}
-        onMouseEnter={() => setTooltip('Go Outside')}
+        onMouseEnter={() => setTooltip(t('room.tooltip.street'))}
         onMouseLeave={() => setTooltip(null)}
         style={{
           position: 'absolute',
@@ -412,7 +414,7 @@ export default function RoomScene({
           maxWidth: 88,
           cursor: charTarget === 'idle' ? 'pointer' : 'default',
           transition: 'transform 0.2s',
-          transform: tooltip === 'Go Outside' ? 'scale(1.03)' : 'scale(1)',
+          transform: tooltip === t('room.tooltip.street') ? 'scale(1.03)' : 'scale(1)',
           zIndex: 2,
         }}
       >
@@ -420,7 +422,7 @@ export default function RoomScene({
           background: 'linear-gradient(160deg, #2d1a55 0%, #1e1040 100%)',
           borderRadius: '6px 6px 0 0',
           border: '2px solid rgba(192,132,252,0.35)',
-          boxShadow: tooltip === 'Go Outside' ? '0 0 20px rgba(147,197,253,0.3)' : '0 0 8px rgba(0,0,0,0.3)',
+          boxShadow: tooltip === t('room.tooltip.street') ? '0 0 20px rgba(147,197,253,0.3)' : '0 0 8px rgba(0,0,0,0.3)',
           transition: 'box-shadow 0.3s',
           padding: 4,
           display: 'flex',
@@ -432,7 +434,7 @@ export default function RoomScene({
           {[0, 1].map(i => (
             <div key={i} style={{
               flex: 1,
-              background: tooltip === 'Go Outside'
+              background: tooltip === t('room.tooltip.street')
                 ? 'linear-gradient(160deg, rgba(147,197,253,0.25), rgba(147,197,253,0.1))'
                 : 'rgba(255,255,255,0.04)',
               borderRadius: 2,
@@ -453,7 +455,7 @@ export default function RoomScene({
           }} />
         </div>
         <div style={{ textAlign: 'center', color: '#93c5fd', fontSize: '0.55rem', marginTop: 2, letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-          Outside
+          {t('room.street')}
         </div>
       </div>
 
@@ -476,9 +478,8 @@ export default function RoomScene({
         transform: 'translateX(-50%)',
         transition: 'left 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
         zIndex: 3,
-        cursor: energy > 0 && charTarget === 'idle' ? 'pointer' : 'default',
+        cursor: 'default',
       }}
-        onClick={charTarget === 'idle' ? handleClickCoin : undefined}
       >
         <div className={clickBounce ? 'click-bounce' : ''}>
           <Character
@@ -488,24 +489,6 @@ export default function RoomScene({
             size={90}
           />
         </div>
-        {/* Click hint */}
-        {!walking && energy > 0 && (
-          <div style={{
-            position: 'absolute',
-            top: -22,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            color: '#fbbf24',
-            fontSize: '0.6rem',
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            opacity: 0.7,
-            whiteSpace: 'nowrap',
-            pointerEvents: 'none',
-          }}>
-            tap to earn
-          </div>
-        )}
         {energy <= 0 && (
           <div style={{
             position: 'absolute',
@@ -516,7 +499,7 @@ export default function RoomScene({
             fontSize: '0.6rem',
             whiteSpace: 'nowrap',
           }}>
-            ⚡ resting…
+            {t('room.energyRecovering')}
           </div>
         )}
       </div>
@@ -628,14 +611,28 @@ export default function RoomScene({
           </span>
         </div>
 
-        {/* Scene hint */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          gap: 16,
-          marginTop: 6,
-        }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 6 }}>
           <button
+            type="button"
+            onClick={handleClickCoin}
+            disabled={charTarget !== 'idle' || energy <= 0}
+            style={{
+              border: '1px solid rgba(251,191,36,.42)',
+              borderRadius: 14,
+              padding: '7px 14px',
+              background: energy > 0 && charTarget === 'idle' ? 'rgba(251,191,36,.14)' : 'rgba(255,255,255,.04)',
+              color: energy > 0 && charTarget === 'idle' ? '#fbbf24' : '#6b7280',
+              fontSize: '0.65rem',
+              fontWeight: 700,
+              cursor: energy > 0 && charTarget === 'idle' ? 'pointer' : 'not-allowed',
+            }}
+          >
+            {t('room.collectCoin')}
+          </button>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginTop: 6 }}>
+          <button
+            type="button"
             onClick={handleWardrobeClick}
             disabled={charTarget !== 'idle'}
             style={{
@@ -651,9 +648,10 @@ export default function RoomScene({
               padding: '2px 8px',
             }}
           >
-            ✨ Wardrobe
+            {t('room.wardrobe')}
           </button>
           <button
+            type="button"
             onClick={handleDoorClick}
             disabled={charTarget !== 'idle'}
             style={{
@@ -669,7 +667,7 @@ export default function RoomScene({
               padding: '2px 8px',
             }}
           >
-            🚪 Street
+            {t('room.street')}
           </button>
         </div>
       </div>

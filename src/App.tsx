@@ -1,5 +1,9 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, type MouseEvent } from 'react';
+import type { Session } from '@supabase/supabase-js';
+import { useI18n } from './i18n';
 import LandingPage from './LandingPage';
+import AuthScreen from './components/AuthScreen';
+import SettingsPanel from './components/SettingsPanel';
 import CharacterSelect from './components/CharacterSelect';
 import RoomScene from './components/RoomScene';
 import StreetScene from './components/StreetScene';
@@ -8,301 +12,161 @@ import ClosetView from './components/ClosetView';
 import MarketScene from './components/MarketScene';
 import AuctionScene from './components/AuctionScene';
 import FusionScene from './components/FusionScene';
-import { ClothingItem } from './gameData';
+import { ITEMS, ClothingItem, type ItemType } from './gameData';
 import { supabase } from './supabaseClient';
 
 type View = 'landing' | 'game';
 type Scene = 'select' | 'room' | 'street' | 'market' | 'auction' | 'fusion' | 'wardrobe' | 'closet';
+type EquippedItems = Partial<Record<ItemType, string>>;
 
-interface FloatingCoin {
-  id: number;
-  x: number;
-  y: number;
-}
+interface FloatingCoin { id: number; x: number; y: number; }
 
 const ENERGY_MAX = 1000;
+const DEFAULT_COINS = 250;
+
+function hydrateInventory(value: unknown): ClothingItem[] {
+  if (!Array.isArray(value)) return [];
+  const ids = value.map(item => typeof item === 'string' ? item : typeof item === 'object' && item !== null && 'id' in item ? String(item.id) : '');
+  return ids.map(id => ITEMS.find(item => item.id === id)).filter((item): item is ClothingItem => Boolean(item));
+}
 
 export default function App() {
+  const { t } = useI18n();
+  const [session, setSession] = useState<Session | null>(null);
+  const [authReady, setAuthReady] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [displayName, setDisplayName] = useState('Player');
   const [view, setView] = useState<View>('landing');
   const [scene, setScene] = useState<Scene>('select');
   const [gender, setGender] = useState<'female' | 'male' | null>(null);
-  const [coins, setCoins] = useState(250);
+  const [coins, setCoins] = useState(DEFAULT_COINS);
   const [energy, setEnergy] = useState(ENERGY_MAX);
   const [inventory, setInventory] = useState<ClothingItem[]>([]);
+  const [equipped, setEquipped] = useState<EquippedItems>({});
   const [floatingCoins, setFloatingCoins] = useState<FloatingCoin[]>([]);
   const [loaded, setLoaded] = useState(false);
   const coinIdRef = useRef(0);
   const energyRef = useRef(energy);
   energyRef.current = energy;
 
-  // Load saved state from Supabase
   useEffect(() => {
+    let active = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (active) { setSession(data.session); setAuthReady(true); }
+    });
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      setSession(nextSession);
+      setAuthReady(true);
+      (async () => {
+        if (nextSession) {
+          const { data } = await supabase.from('player_profiles').select('display_name').eq('user_id', nextSession.user.id).maybeSingle();
+          if (data?.display_name) setDisplayName(data.display_name);
+        }
+      })();
+    });
+    return () => { active = false; listener.subscription.unsubscribe(); };
+  }, []);
+
+  useEffect(() => {
+    if (!session) { setLoaded(false); return; }
+    let active = true;
+    setLoaded(false);
     (async () => {
-      try {
-        const { data: stateData } = await supabase
-          .from('player_state')
-          .select('*')
-          .eq('id', 'default')
-          .maybeSingle();
-        if (stateData) {
-          setCoins(stateData.coins);
-          setEnergy(stateData.energy);
-          if (stateData.gender === 'male' || stateData.gender === 'female') {
-            setGender(stateData.gender);
-          }
-        }
-        const { data: invData } = await supabase
-          .from('inventory')
-          .select('*')
-          .order('created_at', { ascending: true });
-        if (invData && invData.length > 0) {
-          setInventory(invData.map((row: { item_id: string; name: string; type: string; rarity: string; emoji: string; value: number; color: string; description: string }) => ({
-            id: row.item_id,
-            name: row.name,
-            type: row.type as ClothingItem['type'],
-            rarity: row.rarity as ClothingItem['rarity'],
-            emoji: row.emoji,
-            value: row.value,
-            color: row.color,
-            description: row.description,
-          })));
-        }
-      } catch {
-        // Offline or DB not ready — continue with defaults
+      const [profileResult, saveResult] = await Promise.all([
+        supabase.from('player_profiles').select('display_name').eq('user_id', session.user.id).maybeSingle(),
+        supabase.from('player_saves').select('coins, energy, gender, inventory, equipped').eq('user_id', session.user.id).maybeSingle(),
+      ]);
+      if (!active) return;
+      if (profileResult.data?.display_name) setDisplayName(profileResult.data.display_name);
+      if (saveResult.data) {
+        setCoins(saveResult.data.coins);
+        setEnergy(saveResult.data.energy);
+        if (saveResult.data.gender === 'male' || saveResult.data.gender === 'female') setGender(saveResult.data.gender);
+        setInventory(hydrateInventory(saveResult.data.inventory));
+        setEquipped(saveResult.data.equipped && typeof saveResult.data.equipped === 'object' ? saveResult.data.equipped as EquippedItems : {});
       }
       setLoaded(true);
     })();
-  }, []);
+    return () => { active = false; };
+  }, [session]);
 
-  // Persist coins/energy/gender
   useEffect(() => {
-    if (!loaded) return;
-    supabase
-      .from('player_state')
-      .upsert({ id: 'default', coins, energy, gender: gender ?? 'female', updated_at: new Date().toISOString() })
-      .then();
-  }, [coins, energy, gender, loaded]);
+    if (!session || !loaded) return;
+    supabase.from('player_saves').upsert({
+      user_id: session.user.id, coins, energy, gender: gender ?? 'female',
+      inventory: inventory.map(item => item.id), equipped, updated_at: new Date().toISOString(),
+    }).then();
+  }, [coins, energy, gender, inventory, equipped, loaded, session]);
 
-  // Persist inventory
-  useEffect(() => {
-    if (!loaded) return;
-    (async () => {
-      await supabase.from('inventory').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      if (inventory.length > 0) {
-        await supabase.from('inventory').insert(
-          inventory.map(item => ({
-            item_id: item.id,
-            name: item.name,
-            type: item.type,
-            rarity: item.rarity,
-            emoji: item.emoji,
-            value: item.value,
-            color: item.color,
-            description: item.description,
-          }))
-        );
-      }
-    })();
-  }, [inventory, loaded]);
-
-  // Energy regen
   useEffect(() => {
     if (view !== 'game') return;
-    const id = setInterval(() => {
-      if (energyRef.current < ENERGY_MAX) {
-        setEnergy(e => Math.min(ENERGY_MAX, e + 1));
-      }
+    const id = window.setInterval(() => {
+      if (energyRef.current < ENERGY_MAX) setEnergy(value => Math.min(ENERGY_MAX, value + 1));
     }, 3000);
-    return () => clearInterval(id);
+    return () => window.clearInterval(id);
   }, [view]);
 
-  // Mobile viewport height fix
   useEffect(() => {
-    const setVh = () => {
-      document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
-    };
+    const setVh = () => document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
     setVh();
     window.addEventListener('resize', setVh);
     return () => window.removeEventListener('resize', setVh);
   }, []);
 
-  const handleCoinClick = useCallback((e: React.MouseEvent) => {
+  const handleCoinClick = useCallback((event: MouseEvent) => {
     if (energyRef.current <= 0) return;
-    setCoins(c => c + 1);
-    setEnergy(e => Math.max(0, e - 1));
+    setCoins(value => value + 1);
+    setEnergy(value => Math.max(0, value - 1));
     const id = ++coinIdRef.current;
-    setFloatingCoins(prev => [...prev, { id, x: e.clientX, y: e.clientY }]);
-    setTimeout(() => setFloatingCoins(prev => prev.filter(c => c.id !== id)), 800);
+    setFloatingCoins(previous => [...previous, { id, x: event.clientX, y: event.clientY }]);
+    window.setTimeout(() => setFloatingCoins(previous => previous.filter(coin => coin.id !== id)), 800);
   }, []);
 
-  const handleItemWon = useCallback((item: ClothingItem) => {
-    setInventory(prev => [...prev, item]);
-  }, []);
-
+  const handleItemWon = useCallback((item: ClothingItem) => setInventory(previous => [...previous, item]), []);
   const handleMarketBuy = useCallback((item: ClothingItem) => {
-    setCoins(current => Math.max(0, current - item.value));
-    setInventory(prev => [...prev, item]);
+    setCoins(value => value >= item.value ? value - item.value : value);
+    setInventory(previous => [...previous, item]);
   }, []);
-
   const handleAuctionWin = useCallback((item: ClothingItem, cost: number) => {
-    setCoins(current => Math.max(0, current - cost));
-    setInventory(prev => [...prev, item]);
+    setCoins(value => Math.max(0, value - cost));
+    setInventory(previous => [...previous, item]);
   }, []);
-
   const handleFusionResult = useCallback((newItem: ClothingItem, consumed: ClothingItem[]) => {
-    const consumedIds = new Set(consumed.map(c => c.id));
-    setInventory(prev => {
-      const filtered = prev.filter(item => !consumedIds.has(item.id));
-      return [...filtered, newItem];
-    });
+    const consumedIds = new Set(consumed.map(item => item.id));
+    setInventory(previous => [...previous.filter(item => !consumedIds.has(item.id)), newItem]);
   }, []);
+  const handleEquip = useCallback((item: ClothingItem) => setEquipped(previous => ({ ...previous, [item.type]: item.id })), []);
+  const handlePlayDemo = () => setAuthOpen(true);
+  const handleGenderSelect = (value: 'female' | 'male') => { setGender(value); setScene('room'); };
+  const handleSignOut = async () => { await supabase.auth.signOut(); setView('landing'); setScene('select'); setSettingsOpen(false); };
 
-  const handlePlayDemo = () => {
-    setView('game');
-    setScene('select');
-  };
-
-  const handleGenderSelect = (g: 'female' | 'male') => {
-    setGender(g);
-    setScene('room');
-  };
-
-  // ── Landing page ──
-  if (view === 'landing') {
-    return <LandingPage onPlayDemo={handlePlayDemo} />;
+  if (!authReady) return <div className="app-loading">{t('loading') || 'Loading…'}</div>;
+  if (!session) {
+    return authOpen ? <AuthScreen onClose={() => setAuthOpen(false)} onAuthenticated={() => setAuthOpen(false)} /> : <LandingPage onPlayDemo={handlePlayDemo} />;
   }
+  if (view === 'landing') setView('game');
 
-  // ── Game shell ──
   return (
-    <div style={{
-      width: '100vw',
-      height: 'calc(var(--vh, 1vh) * 100)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: '#050310',
-      overflow: 'hidden',
-      position: 'relative',
-    }}>
-      {/* Floating coin animations */}
-      {floatingCoins.map(coin => (
-        <div key={coin.id} className="floating-coin" style={{ left: coin.x, top: coin.y }}>
-          +1 🪙
+    <div className="game-root">
+      {floatingCoins.map(coin => <div key={coin.id} className="floating-coin" style={{ left: coin.x, top: coin.y }}>+1</div>)}
+      <div className="game-device-frame">
+        <div className="game-account-bar">
+          <span>{displayName}</span>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <button type="button" onClick={() => setSettingsOpen(true)} style={{ border: 'none', background: 'transparent', color: '#c4b5fd', fontSize: '0.95rem', cursor: 'pointer' }}>⚙</button>
+            <button type="button" onClick={handleSignOut} style={{ border: 'none', background: 'transparent', color: '#c4b5fd', font: 'inherit', cursor: 'pointer' }}>{t('account.signOut')}</button>
+          </div>
         </div>
-      ))}
-
-      {/* Game device frame */}
-      <div style={{
-        width: '100%',
-        maxWidth: 430,
-        height: '100%',
-        maxHeight: 932,
-        position: 'relative',
-        overflow: 'hidden',
-        borderRadius: window.innerWidth > 480 ? 32 : 0,
-        boxShadow: window.innerWidth > 480
-          ? '0 0 80px rgba(168,85,247,0.3), 0 30px 60px rgba(0,0,0,0.8)'
-          : 'none',
-      }}>
-        {/* Back to site button */}
-        <button
-          onClick={() => setView('landing')}
-          style={{
-            position: 'absolute',
-            top: 12,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            zIndex: 50,
-            background: 'rgba(5,3,15,0.7)',
-            border: '1px solid rgba(192,132,252,0.2)',
-            borderRadius: 20,
-            padding: '3px 14px',
-            color: 'rgba(196,181,253,0.6)',
-            fontSize: '0.6rem',
-            letterSpacing: '0.08em',
-            cursor: 'pointer',
-            backdropFilter: 'blur(8px)',
-            display: scene !== 'select' ? 'block' : 'none',
-          }}
-        >
-          ← Back to site
-        </button>
-
-        {scene === 'select' && (
-          <CharacterSelect onSelect={handleGenderSelect} />
-        )}
-
-        {scene === 'room' && gender && (
-          <RoomScene
-            key="room"
-            gender={gender}
-            coins={coins}
-            energy={energy}
-            maxEnergy={ENERGY_MAX}
-            inventory={inventory}
-            onCoinClick={handleCoinClick}
-            onWardrobeReached={() => setScene('wardrobe')}
-            onDoorReached={() => setScene('street')}
-            onClosetClick={() => setScene('closet')}
-          />
-        )}
-
-        {scene === 'street' && gender && (
-          <StreetScene
-            key="street"
-            gender={gender}
-            coins={coins}
-            onBack={() => setScene('room')}
-            onMarketReached={() => setScene('market')}
-            onAuctionReached={() => setScene('auction')}
-            onFusionReached={() => setScene('fusion')}
-          />
-        )}
-
-        {scene === 'market' && (
-          <MarketScene
-            key="market"
-            coins={coins}
-            onBack={() => setScene('street')}
-            onBuy={handleMarketBuy}
-          />
-        )}
-
-        {scene === 'auction' && (
-          <AuctionScene
-            key="auction"
-            coins={coins}
-            onBack={() => setScene('street')}
-            onWin={handleAuctionWin}
-          />
-        )}
-
-        {scene === 'fusion' && (
-          <FusionScene
-            key="fusion"
-            inventory={inventory}
-            onBack={() => setScene('street')}
-            onResult={handleFusionResult}
-          />
-        )}
-
-        {scene === 'wardrobe' && (
-          <CaseOpening
-            key="wardrobe"
-            coins={coins}
-            onSpend={amount => setCoins(c => c - amount)}
-            onItemWon={handleItemWon}
-            onClose={() => setScene('room')}
-          />
-        )}
-
-        {scene === 'closet' && (
-          <ClosetView
-            key="closet"
-            inventory={inventory}
-            onClose={() => setScene('room')}
-          />
-        )}
+        {scene === 'select' && <CharacterSelect onSelect={handleGenderSelect} />}
+        {scene === 'room' && gender && <RoomScene gender={gender} coins={coins} energy={energy} maxEnergy={ENERGY_MAX} inventory={inventory} onCoinClick={handleCoinClick} onWardrobeReached={() => setScene('wardrobe')} onDoorReached={() => setScene('street')} onClosetClick={() => setScene('closet')} />}
+        {scene === 'street' && gender && <StreetScene gender={gender} coins={coins} onBack={() => setScene('room')} onMarketReached={() => setScene('market')} onAuctionReached={() => setScene('auction')} onFusionReached={() => setScene('fusion')} />}
+        {scene === 'market' && <MarketScene coins={coins} onBack={() => setScene('street')} onBuy={handleMarketBuy} />}
+        {scene === 'auction' && <AuctionScene coins={coins} onBack={() => setScene('street')} onWin={handleAuctionWin} />}
+        {scene === 'fusion' && <FusionScene inventory={inventory} coins={coins} onSpend={amount => setCoins(value => Math.max(0, value - amount))} onBack={() => setScene('street')} onResult={handleFusionResult} />}
+        {scene === 'wardrobe' && <CaseOpening coins={coins} onSpend={amount => setCoins(value => Math.max(0, value - amount))} onItemWon={handleItemWon} onClose={() => setScene('room')} />}
+        {scene === 'closet' && <ClosetView inventory={inventory} equipped={equipped} gender={gender ?? 'female'} onEquip={handleEquip} onClose={() => setScene('room')} />}
+        <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} onSignOut={handleSignOut} />
       </div>
     </div>
   );

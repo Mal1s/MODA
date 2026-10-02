@@ -1,277 +1,87 @@
 import { useState } from 'react';
+import Character from './Character';
 import { ClothingItem, RARITY_CONFIG, type Rarity, type ItemType } from '../gameData';
 
 interface ClosetViewProps {
   inventory: ClothingItem[];
+  equipped: Partial<Record<ItemType, string>>;
+  gender: 'female' | 'male';
+  onEquip: (item: ClothingItem) => void;
   onClose: () => void;
 }
 
 const TYPE_LABELS: Record<ItemType, string> = {
-  top: 'Верх',
-  bottom: 'Низ',
-  dress: 'Платья',
-  shoes: 'Обувь',
-  accessory: 'Аксессуары',
-  bag: 'Сумки',
+  top: 'Top', bottom: 'Bottom', dress: 'Dress', shoes: 'Shoes', accessory: 'Accessory', bag: 'Bag',
 };
-
 const RARITY_ORDER: Rarity[] = ['star', 'legendary', 'mythic', 'rare', 'common'];
 
-export default function ClosetView({ inventory, onClose }: ClosetViewProps) {
+export default function ClosetView({ inventory, equipped, gender, onEquip, onClose }: ClosetViewProps) {
   const [filter, setFilter] = useState<Rarity | 'all'>('all');
   const [selected, setSelected] = useState<ClothingItem | null>(null);
-
-  const filtered = inventory
-    .filter(item => filter === 'all' || item.rarity === filter)
-    .sort((a, b) => RARITY_ORDER.indexOf(a.rarity) - RARITY_ORDER.indexOf(b.rarity));
-
-  const totalValue = inventory.reduce((s, i) => s + i.value, 0);
+  const filtered = inventory.filter(item => filter === 'all' || item.rarity === filter).sort((a, b) => RARITY_ORDER.indexOf(a.rarity) - RARITY_ORDER.indexOf(b.rarity));
+  const totalValue = inventory.reduce((sum, item) => sum + item.value, 0);
+  const wornItems = Object.values(equipped).map(id => inventory.find(item => item.id === id)).filter((item): item is ClothingItem => Boolean(item));
+  const outfit = {
+    topColor: wornItems.find(item => item.type === 'top' || item.type === 'dress')?.color,
+    bottomColor: wornItems.find(item => item.type === 'bottom' || item.type === 'dress')?.color,
+    shoeColor: wornItems.find(item => item.type === 'shoes')?.color,
+  };
 
   return (
-    <div
-      className="scene-enter"
-      style={{
-        width: '100%',
-        height: '100%',
-        background: 'linear-gradient(160deg, #0a0618 0%, #1a0a35 60%, #0a0618 100%)',
-        display: 'flex',
-        flexDirection: 'column',
-        fontFamily: 'Poppins, sans-serif',
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Header */}
-      <div style={{
-        padding: '14px 16px 10px',
-        flexShrink: 0,
-        background: 'linear-gradient(180deg, rgba(10,6,24,0.9) 0%, transparent 100%)',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 12,
-        zIndex: 5,
-      }}>
-        <button onClick={onClose} style={{
-          background: 'rgba(255,255,255,0.05)',
-          border: '1px solid rgba(192,132,252,0.2)',
-          borderRadius: '50%',
-          width: 36,
-          height: 36,
-          color: '#c4b5fd',
-          fontSize: '1rem',
-          cursor: 'pointer',
-          flexShrink: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-          ←
-        </button>
-        <div style={{ flex: 1 }}>
-          <h2 style={{ margin: 0, fontFamily: 'Playfair Display, serif', fontSize: '1.1rem', color: '#f0abfc' }}>
-            Мой шкаф
-          </h2>
-          <div style={{ color: '#6b5a8a', fontSize: '0.65rem', marginTop: 1 }}>
-            {inventory.length} предметов · 🪙 {totalValue.toLocaleString()} общая стоимость
-          </div>
+    <div className="scene-enter closet-view">
+      <div className="closet-header">
+        <button className="round-button" type="button" onClick={onClose}>←</button>
+        <div>
+          <h2>My wardrobe</h2>
+          <div className="muted-caption">{inventory.length} items · {totalValue.toLocaleString()} total value</div>
         </div>
       </div>
 
-      {/* Empty state */}
-      {inventory.length === 0 && (
-        <div style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 12,
-          color: '#4b3a6a',
-        }}>
-          <div style={{ fontSize: '3rem' }}>👗</div>
-          <p style={{ margin: 0, fontSize: '0.85rem', textAlign: 'center' }}>
-            Ваш шкаф пуст.<br />Откройте несколько шкафов, чтобы наполнить его!
-          </p>
-          <button onClick={onClose} style={{
-            marginTop: 8,
-            padding: '10px 20px',
-            borderRadius: 12,
-            border: '1px solid rgba(192,132,252,0.3)',
-            background: 'transparent',
-            color: '#c084fc',
-            cursor: 'pointer',
-            fontSize: '0.85rem',
-          }}>
-            ← В комнату
-          </button>
-        </div>
-      )}
-
-      {inventory.length > 0 && (
+      {inventory.length === 0 ? (
+        <div className="closet-empty"><div className="empty-icon">◇</div><p>Your wardrobe is empty.<br />Open a case to start collecting.</p><button type="button" onClick={onClose}>Back to room</button></div>
+      ) : (
         <>
-          {/* Rarity filter tabs */}
-          <div style={{
-            padding: '0 12px 8px',
-            display: 'flex',
-            gap: 6,
-            overflowX: 'auto',
-            flexShrink: 0,
-          }}>
-            {(['all', 'star', 'legendary', 'mythic', 'rare', 'common'] as const).map(r => {
-              const isActive = filter === r;
-              const cfg = r !== 'all' ? RARITY_CONFIG[r] : null;
-              const count = r === 'all' ? inventory.length : inventory.filter(i => i.rarity === r).length;
-              return (
-                <button
-                  key={r}
-                  onClick={() => setFilter(r)}
-                  style={{
-                    flexShrink: 0,
-                    padding: '5px 12px',
-                    borderRadius: 20,
-                    border: `1px solid ${isActive ? (cfg?.color ?? 'rgba(192,132,252,0.6)') : 'rgba(255,255,255,0.07)'}`,
-                    background: isActive
-                      ? (cfg ? `${cfg.bgColor}` : 'rgba(192,132,252,0.1)')
-                      : 'transparent',
-                    color: isActive ? (cfg?.color ?? '#c084fc') : '#5b4b7a',
-                    fontSize: '0.65rem',
-                    fontWeight: isActive ? 700 : 400,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 4,
-                  }}
-                >
-                  <span>{r === 'all' ? 'Все' : cfg!.label}</span>
-                  <span style={{ opacity: 0.7 }}>({count})</span>
-                </button>
-              );
+          <div className="closet-preview">
+            <div className="closet-character-card">
+              <div className="preview-rays" />
+              <Character gender={gender} outfit={outfit} size={76} />
+              <span>YOUR LOOK</span>
+            </div>
+            <div className="worn-list">
+              <div className="section-label">Currently equipped</div>
+              {wornItems.length === 0 ? <div className="muted-caption">Choose an item to style your character.</div> : wornItems.map(item => <div key={item.id} className="worn-row"><span>{item.image ? <img src={item.image} alt="" /> : item.emoji}</span><strong>{item.name}</strong><small>{TYPE_LABELS[item.type]}</small></div>)}
+            </div>
+          </div>
+
+          <div className="closet-filters">
+            {(['all', 'star', 'legendary', 'mythic', 'rare', 'common'] as const).map(rarity => {
+              const active = filter === rarity;
+              const config = rarity === 'all' ? null : RARITY_CONFIG[rarity];
+              const count = rarity === 'all' ? inventory.length : inventory.filter(item => item.rarity === rarity).length;
+              return <button key={rarity} type="button" onClick={() => setFilter(rarity)} className={active ? 'filter-chip active' : 'filter-chip'} style={active && config ? { color: config.color, borderColor: config.color, background: config.bgColor } : undefined}>{rarity === 'all' ? 'All' : config?.label} <span>{count}</span></button>;
             })}
           </div>
 
-          {/* Grid */}
-          <div style={{
-            flex: 1,
-            overflow: 'auto',
-            padding: '4px 12px 20px',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: 8,
-            alignContent: 'start',
-          }}>
-            {filtered.map((item, idx) => {
-              const cfg = RARITY_CONFIG[item.rarity];
+          <div className="closet-grid">
+            {filtered.map(item => {
+              const config = RARITY_CONFIG[item.rarity];
+              const isWorn = equipped[item.type] === item.id;
               const isSelected = selected?.id === item.id;
               return (
-                <div
-                  key={item.id + idx}
-                  onClick={() => setSelected(isSelected ? null : item)}
-                  style={{
-                    background: isSelected
-                      ? `linear-gradient(160deg, ${cfg.bgColor}, rgba(19,13,42,0.6))`
-                      : 'rgba(255,255,255,0.03)',
-                    border: `1.5px solid ${isSelected ? cfg.color + '80' : 'rgba(255,255,255,0.06)'}`,
-                    borderRadius: 12,
-                    padding: '10px 8px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: 4,
-                    transition: 'all 0.2s',
-                    boxShadow: isSelected && item.rarity !== 'common' ? cfg.glow : 'none',
-                  }}
-                >
-                  <div
-                    className={
-                      item.rarity === 'star' ? 'glow-star'
-                      : item.rarity === 'legendary' ? 'glow-legendary'
-                      : item.rarity === 'mythic' ? 'glow-mythic'
-                      : item.rarity === 'rare' ? 'glow-rare'
-                      : ''
-                    }
-                    style={{ fontSize: '1.8rem' }}
-                  >
-                    {item.image ? <img src={item.image} alt={item.name} style={{ maxWidth: '60%', maxHeight: '60%', objectFit: 'contain' }} /> : item.emoji}
+                <div key={item.id} className="closet-item-card" onClick={() => setSelected(isSelected ? null : item)} style={{ borderColor: isSelected ? config.color : undefined, boxShadow: isSelected ? config.glow : undefined }}>
+                  {isWorn && <span className="worn-badge">WORN</span>}
+                  <div className="closet-item-image" style={{ background: config.bgColor }}>
+                    {item.image ? <img src={item.image} alt={item.name} /> : <span>{item.emoji}</span>}
                   </div>
-                  <div style={{
-                    fontSize: '0.6rem',
-                    color: '#c4b5fd',
-                    textAlign: 'center',
-                    lineHeight: 1.2,
-                    fontWeight: 500,
-                    maxWidth: '100%',
-                    overflow: 'hidden',
-                    whiteSpace: 'nowrap',
-                    textOverflow: 'ellipsis',
-                    width: '100%',
-                    paddingInline: 2,
-                  }}>
-                    {item.name}
-                  </div>
-                  <div style={{
-                    fontSize: '0.55rem',
-                    color: cfg.color,
-                    fontWeight: 700,
-                  }}>
-                    {cfg.label}
-                  </div>
+                  <strong>{item.name}</strong>
+                  <small style={{ color: config.color }}>{config.label}</small>
+                  <button type="button" onClick={event => { event.stopPropagation(); onEquip(item); }} className={isWorn ? 'equip-button equipped' : 'equip-button'}>{isWorn ? 'Equipped' : 'Equip'}</button>
                 </div>
               );
             })}
           </div>
 
-          {/* Detail panel */}
-          {selected && (
-            <div style={{
-              flexShrink: 0,
-              margin: '0 12px 12px',
-              padding: '12px 16px',
-              background: `linear-gradient(135deg, ${RARITY_CONFIG[selected.rarity].bgColor}, rgba(19,13,42,0.9))`,
-              border: `1.5px solid ${RARITY_CONFIG[selected.rarity].color}50`,
-              borderRadius: 16,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 12,
-              boxShadow: selected.rarity !== 'common' ? RARITY_CONFIG[selected.rarity].glow : 'none',
-              animation: 'scene-in 0.2s ease-out',
-            }}>
-              <div
-                className={
-                  selected.rarity === 'star' ? 'glow-star'
-                  : selected.rarity === 'legendary' ? 'glow-legendary'
-                  : selected.rarity === 'mythic' ? 'glow-mythic'
-                  : selected.rarity === 'rare' ? 'glow-rare'
-                  : ''
-                }
-                style={{ fontSize: '2.2rem', flexShrink: 0 }}
-              >
-                {selected.image ? <img src={selected.image} alt={selected.name} style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }} /> : selected.emoji}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontFamily: 'Playfair Display, serif', fontSize: '0.9rem', fontWeight: 700, color: '#f0e6ff' }}>
-                  {selected.name}
-                </div>
-                <div style={{ color: '#9d7fc0', fontSize: '0.65rem', marginTop: 2 }}>{selected.description}</div>
-                <div style={{ display: 'flex', gap: 8, marginTop: 5, alignItems: 'center' }}>
-                  <span style={{
-                    background: RARITY_CONFIG[selected.rarity].bgColor,
-                    border: `1px solid ${RARITY_CONFIG[selected.rarity].color}50`,
-                    color: RARITY_CONFIG[selected.rarity].color,
-                    fontSize: '0.55rem',
-                    padding: '2px 7px',
-                    borderRadius: 10,
-                    fontWeight: 700,
-                  }}>
-                    {RARITY_CONFIG[selected.rarity].label}
-                  </span>
-                  <span style={{ color: '#fbbf24', fontSize: '0.7rem' }}>🪙 {selected.value.toLocaleString()}</span>
-                  <span style={{ color: '#6b5a8a', fontSize: '0.6rem', textTransform: 'capitalize' }}>{TYPE_LABELS[selected.type]}</span>
-                </div>
-              </div>
-            </div>
-          )}
+          {selected && <div className="closet-detail" style={{ borderColor: `${RARITY_CONFIG[selected.rarity].color}80` }}><div><strong>{selected.name}</strong><p>{selected.description}</p></div><span style={{ color: RARITY_CONFIG[selected.rarity].color }}>{RARITY_CONFIG[selected.rarity].label}</span></div>}
         </>
       )}
     </div>

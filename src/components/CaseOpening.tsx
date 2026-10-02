@@ -50,7 +50,7 @@ export default function CaseOpening({ coins, onSpend, onItemWon, onClose }: Case
     if (coins < selectedCase.cost) return;
 
     onSpend(selectedCase.cost);
-    const won = rollItem(selectedCase.maxRarity);
+    const won = rollItem(selectedCase.maxRarity, selectedCase.dropChances);
     const newStrip = generateRouletteStrip(won);
     setStrip(newStrip);
     setWinner(won);
@@ -205,7 +205,7 @@ export default function CaseOpening({ coins, onSpend, onItemWon, onClose }: Case
         </button>
         <div>
           <h2 style={{ margin: 0, fontFamily: 'Playfair Display, serif', fontSize: '1.1rem', color: '#f0abfc' }}>
-            Модный шкаф
+            Fashion Wardrobe
           </h2>
           <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 1 }}>
             <span style={{ color: '#fbbf24', fontSize: '0.75rem' }}>🪙</span>
@@ -218,8 +218,29 @@ export default function CaseOpening({ coins, onSpend, onItemWon, onClose }: Case
       {phase === 'select' && (
         <div style={{ flex: 1, overflow: 'auto', padding: '8px 16px 24px' }}>
           <p style={{ color: '#9d7fc0', fontSize: '0.75rem', textAlign: 'center', marginBottom: 16, letterSpacing: '0.05em' }}>
-            Выберите шкаф для открытия
+            Preview the case and its possible rewards before opening
           </p>
+
+          <div style={{ marginBottom: 14, padding: 12, border: `1px solid ${selectedCase.glowColor}55`, borderRadius: 16, background: `${selectedCase.glowColor}12` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 88, height: 88, display: 'grid', placeItems: 'center', borderRadius: 12, background: 'rgba(255,255,255,.08)' }}>
+                {selectedCase.image ? <img src={selectedCase.image} alt={selectedCase.name} draggable={false} style={{ maxWidth: '88%', maxHeight: '88%', objectFit: 'contain' }} /> : <span style={{ fontSize: '2.5rem' }}>{selectedCase.emoji}</span>}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ color: '#f0e6ff', fontFamily: 'Playfair Display, serif', fontWeight: 700, fontSize: '1rem' }}>{selectedCase.name}</div>
+                <div style={{ color: '#9d7fc0', fontSize: '.65rem', marginTop: 3 }}>{selectedCase.description}</div>
+              </div>
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }}>
+              {(['common', 'rare', 'mythic', 'legendary', 'star'] as Rarity[]).filter(rarity => (selectedCase.dropChances[rarity] ?? 0) > 0).map(rarity => {
+                const config = RARITY_CONFIG[rarity];
+                return <span key={rarity} style={{ padding: '4px 7px', border: `1px solid ${config.color}55`, borderRadius: 8, background: config.bgColor, color: config.color, fontSize: '.56rem', fontWeight: 700 }}>{config.label}: {Math.round((selectedCase.dropChances[rarity] ?? 0) * 100)}%</span>;
+              })}
+            </div>
+            <div style={{ display: 'flex', gap: 6, overflowX: 'auto', marginTop: 10, paddingBottom: 2 }}>
+              {ITEMS.filter(item => (selectedCase.dropChances[item.rarity] ?? 0) > 0).map(item => <div key={item.id} title={item.name} style={{ width: 42, height: 42, flexShrink: 0, display: 'grid', placeItems: 'center', borderRadius: 9, background: RARITY_CONFIG[item.rarity].bgColor, border: `1px solid ${RARITY_CONFIG[item.rarity].color}45` }}>{item.image ? <img src={item.image} alt="" draggable={false} style={{ maxWidth: '85%', maxHeight: '85%', objectFit: 'contain' }} /> : item.emoji}</div>)}
+            </div>
+          </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {CASES.map(c => {
@@ -250,7 +271,7 @@ export default function CaseOpening({ coins, onSpend, onItemWon, onClose }: Case
                     filter: c.premium ? 'drop-shadow(0 0 8px #f0abfc)' : isSelected ? `drop-shadow(0 0 6px ${c.glowColor})` : 'none',
                     flexShrink: 0,
                   }}>
-                    {c.emoji}
+                    {c.image ? <img src={c.image} alt={c.name} draggable={false} style={{ maxWidth: 54, maxHeight: 54, objectFit: 'contain' }} /> : c.emoji}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{
@@ -308,20 +329,20 @@ export default function CaseOpening({ coins, onSpend, onItemWon, onClose }: Case
               transition: 'all 0.2s',
             }}
           >
-            {selectedCase.premium ? '💳 Купить премиум' : coins < selectedCase.cost ? `Нужно ещё ${(selectedCase.cost - coins).toLocaleString()} 🪙` : '✨ Открыть шкаф'}
+            {selectedCase.premium ? 'Get Premium' : coins < selectedCase.cost ? `Need ${(selectedCase.cost - coins).toLocaleString()} more coins` : 'Open case'}
           </button>
 
           {/* Rarity legend */}
           <div style={{ marginTop: 16, padding: '10px 12px', background: 'rgba(255,255,255,0.03)', borderRadius: 10, border: '1px solid rgba(255,255,255,0.05)' }}>
-            <div style={{ color: '#5b4b7a', fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Шансы редкости</div>
+            <div style={{ color: '#8c93a8', fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 8 }}>Drop chances for this case</div>
             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               {(['common', 'rare', 'mythic', 'legendary', 'star'] as Rarity[]).map(r => {
                 const cfg = RARITY_CONFIG[r];
-                const chance = Math.round(cfg.chance * 100);
+                const chance = Math.round((selectedCase.dropChances[r] ?? 0) * 100);
                 return (
                   <div key={r} style={{ textAlign: 'center' }}>
                     <div style={{ color: cfg.color, fontSize: '0.65rem', fontWeight: 600 }}>{cfg.label}</div>
-                    <div style={{ color: '#5b4b7a', fontSize: '0.6rem' }}>{chance}%</div>
+                    <div style={{ color: chance > 0 ? '#cbd5e1' : '#4b5563', fontSize: '0.6rem' }}>{chance}%</div>
                   </div>
                 );
               })}
@@ -334,7 +355,7 @@ export default function CaseOpening({ coins, onSpend, onItemWon, onClose }: Case
       {(phase === 'spinning' || phase === 'result') && (
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
           <div style={{ color: '#9d7fc0', fontSize: '0.75rem', letterSpacing: '0.1em', marginBottom: 16, textTransform: 'uppercase' }}>
-            {phase === 'spinning' ? '✦ Открываем шкаф...' : '✦ Вы получили'}
+            {phase === 'spinning' ? 'Opening case...' : 'You received'}
           </div>
 
           {/* Roulette container */}
@@ -509,7 +530,7 @@ export default function CaseOpening({ coins, onSpend, onItemWon, onClose }: Case
                   cursor: 'pointer',
                 }}
               >
-                Открыть ещё
+                Open again
               </button>
               <button
                 onClick={onClose}
@@ -527,7 +548,7 @@ export default function CaseOpening({ coins, onSpend, onItemWon, onClose }: Case
                   boxShadow: '0 4px 16px rgba(124,58,237,0.4)',
                 }}
               >
-                ← В комнату
+                ← Back to room
               </button>
             </div>
           )}
@@ -578,7 +599,7 @@ export default function CaseOpening({ coins, onSpend, onItemWon, onClose }: Case
             marginBottom: 12,
             zIndex: 1,
           }}>
-            ✦ ✦ ✦  НЕВЕРОЯТНО!  ✦ ✦ ✦
+            ✦ ✦ ✦  INCREDIBLE!  ✦ ✦ ✦
           </div>
 
           <div
@@ -640,7 +661,7 @@ export default function CaseOpening({ coins, onSpend, onItemWon, onClose }: Case
               fontWeight: 600,
               cursor: 'pointer',
               fontFamily: 'Poppins, sans-serif',
-            }}>Открыть ещё</button>
+            }}>Open again</button>
             <button onClick={onClose} style={{
               padding: '12px 20px',
               borderRadius: 14,
@@ -652,7 +673,7 @@ export default function CaseOpening({ coins, onSpend, onItemWon, onClose }: Case
               cursor: 'pointer',
               fontFamily: 'Poppins, sans-serif',
               boxShadow: '0 4px 20px rgba(192,38,211,0.5)',
-            }}>← В комнату</button>
+            }}>← Back to room</button>
           </div>
         </div>
       )}
