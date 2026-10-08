@@ -1,11 +1,14 @@
-import { useState, useCallback } from 'react';
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import Character from './Character';
+import { useI18n } from '../i18n';
 
-type StreetTarget = 'idle' | 'shop' | 'market' | 'auction' | 'fusion' | 'home';
+type StreetTarget = 'home' | 'market' | 'auction' | 'fusion' | 'boutique' | 'park';
+type StreetPhase = 'idle' | 'walking' | 'entering';
 
 interface StreetSceneProps {
   gender: 'female' | 'male';
   coins: number;
+  isNight: boolean;
   onBack: () => void;
   onMarketReached: () => void;
   onAuctionReached: () => void;
@@ -15,392 +18,124 @@ interface StreetSceneProps {
 interface Location {
   id: StreetTarget;
   label: string;
-  emoji: string;
   description: string;
+  emoji: string;
   color: string;
-  glowColor: string;
-  x: number; // % left
-  comingSoon?: boolean;
+  glow: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  roof: string;
 }
 
 const LOCATIONS: Location[] = [
-  { id: 'home', label: 'Home', emoji: '🏠', description: 'Your cozy room', color: '#4b3080', glowColor: '#7c3aed', x: 8 },
-  { id: 'market', label: 'Market', emoji: '🛍️', description: 'Buy directly from sellers', color: '#1e4d80', glowColor: '#3b82f6', x: 28 },
-  { id: 'fusion', label: 'Fusion', emoji: '⚗️', description: 'Merge and upgrade items', color: '#3d1a50', glowColor: '#a855f7', x: 48 },
-  { id: 'auction', label: 'Auction', emoji: '🔨', description: 'Bid and win rare items', color: '#1a3d1a', glowColor: '#22c55e', x: 68 },
-  { id: 'shop', label: 'Boutique', emoji: '👗', description: 'Luxury fashion', color: '#3d1a60', glowColor: '#c084fc', x: 88, comingSoon: true },
+  { id: 'home', label: 'street.home', description: 'street.home.desc', emoji: '⌂', color: '#5b3c93', glow: '#c084fc', x: 12, y: 54, width: 18, height: 25, roof: '#34205f' },
+  { id: 'market', label: 'street.market', description: 'street.market.desc', emoji: '✦', color: '#24547d', glow: '#60a5fa', x: 35, y: 35, width: 22, height: 33, roof: '#173b62' },
+  { id: 'fusion', label: 'street.fusion', description: 'street.fusion.desc', emoji: '◇', color: '#7a3c66', glow: '#e879f9', x: 61, y: 47, width: 18, height: 29, roof: '#4f244f' },
+  { id: 'auction', label: 'street.auction', description: 'street.auction.desc', emoji: '◆', color: '#326044', glow: '#86efac', x: 84, y: 31, width: 21, height: 36, roof: '#214b37' },
+  { id: 'boutique', label: 'street.boutique', description: 'street.boutique.desc', emoji: '◇', color: '#9a5d39', glow: '#fbbf24', x: 79, y: 72, width: 16, height: 22, roof: '#65351f' },
+  { id: 'park', label: 'street.park', description: 'street.park.desc', emoji: '✿', color: '#27665a', glow: '#5eead4', x: 21, y: 22, width: 17, height: 16, roof: '#184d46' },
 ];
 
-export default function StreetScene({ gender, coins, onBack, onMarketReached, onAuctionReached, onFusionReached }: StreetSceneProps) {
-  const [charTarget, setCharTarget] = useState<StreetTarget>('idle');
-  const [charX, setCharX] = useState(20);
-  const [walking, setWalking] = useState(false);
-  const [facing, setFacing] = useState<'left' | 'right' | 'forward'>('forward');
+export default function StreetScene({ gender, coins, isNight, onBack, onMarketReached, onAuctionReached, onFusionReached }: StreetSceneProps) {
+  const { t } = useI18n();
+  const [target, setTarget] = useState<StreetTarget | null>(null);
+  const [phase, setPhase] = useState<StreetPhase>('idle');
+  const [charPosition, setCharPosition] = useState({ x: 50, y: 78 });
   const [hovered, setHovered] = useState<StreetTarget | null>(null);
-  const [notification, setNotification] = useState<string | null>(null);
 
-  const walkTo = useCallback((target: StreetTarget, destX: number, dir: 'left' | 'right') => {
-    if (charTarget !== 'idle') return;
-    setCharTarget(target);
-    setFacing(dir);
-    setWalking(true);
-    setCharX(destX);
+  const palette = useMemo(() => isNight ? {
+    sky: 'linear-gradient(145deg, #08051a 0%, #181241 50%, #281450 100%)',
+    ground: 'linear-gradient(145deg, #15112c, #0a1324)',
+    road: 'rgba(192,132,252,.18)',
+    grid: 'rgba(192,132,252,.08)',
+    text: '#f0e6ff',
+    muted: '#9584b5',
+    overlay: 'rgba(5,3,15,.76)',
+    sun: 'radial-gradient(circle at 35% 35%, #fff7d6, #fbbf24)',
+  } : {
+    sky: 'linear-gradient(145deg, #a9d7f6 0%, #dceeff 55%, #f7d9bf 100%)',
+    ground: 'linear-gradient(145deg, #d8c6ba, #b4c8cd)',
+    road: 'rgba(64,98,120,.2)',
+    grid: 'rgba(47,75,95,.12)',
+    text: '#172239',
+    muted: '#52657b',
+    overlay: 'rgba(240,248,255,.72)',
+    sun: 'radial-gradient(circle at 35% 35%, #fffbea, #f59e0b)',
+  }, [isNight]);
 
-    setTimeout(() => {
-      setWalking(false);
-      setFacing('forward');
-      setCharTarget('idle');
+  useEffect(() => {
+    if (!target) return;
+    const location = LOCATIONS.find(item => item.id === target);
+    if (!location) return;
+    setPhase('walking');
+    setCharPosition({ x: location.x, y: Math.min(78, location.y + 14) });
+    const enterTimer = window.setTimeout(() => setPhase('entering'), 850);
+    const finishTimer = window.setTimeout(() => {
+      if (target === 'home') onBack();
+      if (target === 'market') onMarketReached();
+      if (target === 'auction') onAuctionReached();
+      if (target === 'fusion') onFusionReached();
+      if (target === 'boutique' || target === 'park') setTarget(null);
+      setPhase('idle');
+    }, 1550);
+    return () => { window.clearTimeout(enterTimer); window.clearTimeout(finishTimer); };
+  }, [target, onBack, onMarketReached, onAuctionReached, onFusionReached]);
 
-      if (target === 'home') {
-        onBack();
-      } else if (target === 'market') {
-        onMarketReached();
-      } else if (target === 'auction') {
-        onAuctionReached();
-      } else if (target === 'fusion') {
-        onFusionReached();
-      } else if (target === 'shop') {
-        setNotification('Boutique — coming soon! Luxury new arrivals will appear here.');
-        setTimeout(() => setNotification(null), 3000);
-        setTimeout(() => {
-          setFacing('left');
-          setWalking(true);
-          setCharX(20);
-          setTimeout(() => { setWalking(false); setFacing('forward'); }, 700);
-        }, 400);
-      }
-    }, 900);
-  }, [charTarget, onBack]);
+  const selectLocation = useCallback((location: Location) => {
+    if (phase !== 'idle') return;
+    setTarget(location.id);
+  }, [phase]);
 
   return (
-    <div
-      className="scene-enter"
-      style={{
-        width: '100%',
-        height: '100%',
-        position: 'relative',
-        overflow: 'hidden',
-        background: '#0a0618',
-        fontFamily: 'Poppins, sans-serif',
-      }}
-    >
-      {/* ── Sky ── */}
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: '55%',
-        background: 'linear-gradient(180deg, #0f0828 0%, #1a1045 50%, #231455 100%)',
-      }}>
-        {/* Stars */}
-        {[...Array(25)].map((_, i) => (
-          <div key={i} style={{
-            position: 'absolute',
-            width: Math.random() * 2 + 1,
-            height: Math.random() * 2 + 1,
-            background: 'white',
-            borderRadius: '50%',
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 70}%`,
-            opacity: Math.random() * 0.7 + 0.2,
-          }} />
-        ))}
-        {/* Moon */}
-        <div style={{
-          position: 'absolute',
-          top: '10%',
-          right: '8%',
-          width: 36,
-          height: 36,
-          background: 'radial-gradient(circle at 35% 35%, #fef3c7, #fbbf24)',
-          borderRadius: '50%',
-          boxShadow: '0 0 20px rgba(251,191,36,0.4)',
-        }}>
-          <div style={{
-            position: 'absolute',
-            top: 5,
-            right: 4,
-            width: 16,
-            height: 16,
-            background: '#1a1045',
-            borderRadius: '50%',
-          }} />
+    <div className={`street-scene scene-enter ${isNight ? 'street-night' : 'street-day'}`} style={{ '--street-sky': palette.sky, '--street-ground': palette.ground, '--street-road': palette.road, '--street-grid': palette.grid, '--street-text': palette.text, '--street-muted': palette.muted, '--street-overlay': palette.overlay } as CSSProperties}>
+      <div className="street-sky-layer">
+        <div className="street-sun" style={{ background: palette.sun }} />
+        {isNight && [...Array(28)].map((_, index) => <i key={index} className="street-star" style={{ left: `${(index * 37) % 100}%`, top: `${(index * 23) % 57}%`, animationDelay: `${index * 0.1}s` }} />)}
+        {!isNight && <div className="street-cloud cloud-one" />}
+        {!isNight && <div className="street-cloud cloud-two" />}
+      </div>
+
+      <div className="street-map">
+        <div className="street-road street-road-main" />
+        <div className="street-road street-road-cross" />
+        <div className="street-road street-road-ring" />
+        <div className="street-plaza"><span>✦</span></div>
+        <div className="street-trees">
+          {[...Array(9)].map((_, index) => <div key={index} className="street-tree" style={{ left: `${8 + ((index * 31) % 86)}%`, top: `${18 + ((index * 47) % 66)}%` }}><span /><b /></div>)}
+        </div>
+
+        {LOCATIONS.map(location => {
+          const active = target === location.id;
+          const highlighted = hovered === location.id || active;
+          return (
+            <button key={location.id} type="button" className={`street-building ${active ? 'building-active' : ''}`} style={{ left: `${location.x}%`, top: `${location.y}%`, width: `${location.width}%`, height: `${location.height}%`, '--building-color': location.color, '--building-roof': location.roof, '--building-glow': location.glow } as CSSProperties} onMouseEnter={() => setHovered(location.id)} onMouseLeave={() => setHovered(null)} onClick={() => selectLocation(location)}>
+              <span className="building-roof" />
+              <span className="building-sign" style={{ color: highlighted ? location.glow : palette.text }}>{location.emoji}</span>
+              <span className="building-windows">{[0, 1, 2, 3].map(index => <i key={index} className={highlighted ? 'window-lit' : ''} />)}</span>
+              <strong style={{ color: highlighted ? location.glow : palette.text }}>{t(location.label)}</strong>
+              {hovered === location.id && phase === 'idle' && <small style={{ color: palette.text }}>{t(location.description)}</small>}
+            </button>
+          );
+        })}
+
+        <div className="street-character" style={{ left: `${charPosition.x}%`, top: `${charPosition.y}%` }}>
+          <div className={phase === 'entering' ? 'character-entering' : ''}><Character gender={gender} walking={phase === 'walking'} size={62} /></div>
+          {phase === 'entering' && <div className="entry-doors"><span /><span /></div>}
         </div>
       </div>
 
-      {/* ── Ground / street ── */}
-      <div style={{
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: '48%',
-        background: 'linear-gradient(180deg, #1a1230 0%, #110d22 100%)',
-        borderTop: '2px solid rgba(192,132,252,0.25)',
-      }}>
-        {/* Street tiles */}
-        {[...Array(6)].map((_, i) => (
-          <div key={i} style={{
-            position: 'absolute',
-            left: `${(i * 16.6)}%`,
-            top: 0,
-            bottom: 0,
-            width: '15.5%',
-            borderRight: '1px solid rgba(192,132,252,0.05)',
-          }} />
-        ))}
-        {/* Neon street reflection */}
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: 4,
-          background: 'linear-gradient(90deg, rgba(124,58,237,0.4), rgba(59,130,246,0.3), rgba(192,132,252,0.4), rgba(59,130,246,0.3), rgba(124,58,237,0.4))',
-        }} />
+      {phase === 'entering' && <div className="street-camera-transition"><span>{target ? t(LOCATIONS.find(location => location.id === target)?.label ?? '') : ''}</span></div>}
+
+      <div className="street-hud street-hud-top">
+        <div><strong>{t('street.title')}</strong><span className="hud-dot" /><small>{isNight ? t('street.nightMode') : t('street.dayMode')}</small></div>
+        <div className="coin-pill"><span>🪙</span>{coins.toLocaleString()}</div>
       </div>
-
-      {/* ── Buildings / Locations ── */}
-      {LOCATIONS.map(loc => {
-        const isHovered = hovered === loc.id;
-        const isWalkingTo = charTarget === loc.id;
-        return (
-          <div
-            key={loc.id}
-            onMouseEnter={() => setHovered(loc.id)}
-            onMouseLeave={() => setHovered(null)}
-            onClick={() => {
-              if (charTarget !== 'idle') return;
-              const dir = loc.x > charX ? 'right' : 'left';
-              walkTo(loc.id, loc.x - 6, dir);
-            }}
-            style={{
-              position: 'absolute',
-              bottom: '46%',
-              left: `${loc.x}%`,
-              transform: 'translateX(-50%)',
-              cursor: charTarget === 'idle' ? 'pointer' : 'default',
-              transition: 'transform 0.2s',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-            }}
-          >
-            {/* Building */}
-            <div style={{
-              background: `linear-gradient(160deg, ${loc.color} 0%, rgba(0,0,0,0.5) 100%)`,
-              border: `1.5px solid ${isHovered || isWalkingTo ? loc.glowColor : 'rgba(255,255,255,0.08)'}`,
-              borderRadius: '8px 8px 0 0',
-              padding: '10px 8px 8px',
-              width: 70,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 5,
-              boxShadow: isHovered
-                ? `0 0 20px ${loc.glowColor}50`
-                : '0 4px 16px rgba(0,0,0,0.4)',
-              transition: 'all 0.2s',
-              position: 'relative',
-              transform: isHovered ? 'translateY(-4px)' : 'translateY(0)',
-            }}>
-              {/* Sign / neon glow */}
-              <div style={{
-                position: 'absolute',
-                top: -10,
-                left: '50%',
-                transform: 'translateX(-50%)',
-                width: '90%',
-                height: 6,
-                background: loc.glowColor,
-                borderRadius: 3,
-                boxShadow: `0 0 10px ${loc.glowColor}`,
-                opacity: isHovered ? 1 : 0.5,
-                transition: 'opacity 0.2s',
-              }} />
-
-              {/* Windows */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 3, width: '100%' }}>
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} style={{
-                    height: 12,
-                    background: isHovered
-                      ? `linear-gradient(135deg, ${loc.glowColor}60, ${loc.glowColor}20)`
-                      : 'rgba(255,255,255,0.05)',
-                    borderRadius: 2,
-                    border: '1px solid rgba(255,255,255,0.06)',
-                    transition: 'background 0.2s',
-                  }} />
-                ))}
-              </div>
-
-              {/* Emoji sign */}
-              <div style={{ fontSize: '1.3rem' }}>{loc.emoji}</div>
-            </div>
-
-            {/* Building base */}
-            <div style={{
-              width: 70,
-              height: 6,
-              background: 'rgba(255,255,255,0.05)',
-              borderTop: '1px solid rgba(255,255,255,0.1)',
-            }} />
-
-            {/* Label */}
-            <div style={{
-              marginTop: 3,
-              color: isHovered ? loc.glowColor : '#6b5a8a',
-              fontSize: '0.6rem',
-              fontWeight: 600,
-              letterSpacing: '0.08em',
-              textTransform: 'uppercase',
-              transition: 'color 0.2s',
-            }}>
-              {loc.label}
-              {loc.comingSoon && (
-                <span style={{ marginLeft: 4, fontSize: '0.5rem', color: '#5b4b7a', border: '1px solid #5b4b7a', padding: '0 3px', borderRadius: 4 }}>
-                  soon
-                </span>
-              )}
-            </div>
-
-            {/* Hover hint */}
-            {isHovered && charTarget === 'idle' && (
-              <div style={{
-                position: 'absolute',
-                bottom: '100%',
-                marginBottom: 6,
-                background: 'rgba(19,13,42,0.9)',
-                border: `1px solid ${loc.glowColor}50`,
-                borderRadius: 8,
-                padding: '4px 10px',
-                color: '#c4b5fd',
-                fontSize: '0.62rem',
-                whiteSpace: 'nowrap',
-                backdropFilter: 'blur(4px)',
-              }}>
-                {loc.description}
-              </div>
-            )}
-          </div>
-        );
-      })}
-
-      {/* ── Street lamps ── */}
-      {[15, 45, 70].map((x, i) => (
-        <div key={i} style={{
-          position: 'absolute',
-          bottom: '45%',
-          left: `${x}%`,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}>
-          <div style={{
-            width: 4,
-            height: 50,
-            background: 'linear-gradient(180deg, #4b3080, #2d1a55)',
-            borderRadius: 2,
-          }} />
-          <div style={{
-            marginTop: -4,
-            width: 14,
-            height: 14,
-            background: '#fbbf24',
-            borderRadius: '50%',
-            boxShadow: '0 0 15px rgba(251,191,36,0.6)',
-          }} />
-        </div>
-      ))}
-
-      {/* ── Character ── */}
-      <div style={{
-        position: 'absolute',
-        bottom: '45.5%',
-        left: `${charX}%`,
-        transform: 'translateX(-50%)',
-        transition: 'left 0.9s cubic-bezier(0.25, 0.46, 0.45, 0.94)',
-        zIndex: 5,
-      }}>
-        <Character gender={gender} walking={walking} facing={facing} size={75} />
-      </div>
-
-      {/* ── Notification toast ── */}
-      {notification && (
-        <div style={{
-          position: 'fixed',
-          bottom: 80,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          background: 'rgba(19,13,42,0.95)',
-          border: '1px solid rgba(192,132,252,0.35)',
-          borderRadius: 14,
-          padding: '10px 18px',
-          color: '#c4b5fd',
-          fontSize: '0.78rem',
-          zIndex: 20,
-          maxWidth: 320,
-          textAlign: 'center',
-          backdropFilter: 'blur(8px)',
-          animation: 'scene-in 0.3s ease-out',
-        }}>
-          {notification}
-        </div>
-      )}
-
-      {/* ── Top HUD ── */}
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        padding: '12px 16px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        background: 'linear-gradient(180deg, rgba(10,6,24,0.85) 0%, transparent 100%)',
-        zIndex: 10,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{ fontFamily: 'Playfair Display, serif', color: '#f0abfc', fontSize: '0.9rem', fontWeight: 700 }}>
-            Fashion Street
-          </div>
-          <div style={{ width: 4, height: 4, background: '#c084fc', borderRadius: '50%', opacity: 0.6 }} />
-          <div style={{ color: '#6b5a8a', fontSize: '0.65rem' }}>night mode</div>
-        </div>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 5,
-          background: 'rgba(19,13,42,0.8)',
-          border: '1px solid rgba(251,191,36,0.25)',
-          borderRadius: 20,
-          padding: '4px 10px',
-        }}>
-          <span style={{ fontSize: '0.85rem' }}>🪙</span>
-          <span style={{ color: '#fbbf24', fontSize: '0.8rem', fontWeight: 700 }}>{coins.toLocaleString()}</span>
-        </div>
-      </div>
-
-      {/* ── Bottom hint ── */}
-      <div style={{
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        padding: '8px 16px 14px',
-        background: 'linear-gradient(0deg, rgba(10,6,24,0.9) 0%, transparent 100%)',
-        textAlign: 'center',
-        color: '#3d2d5a',
-        fontSize: '0.62rem',
-        letterSpacing: '0.08em',
-        zIndex: 10,
-      }}>
-        {charTarget === 'idle'
-          ? 'Tap a location to walk there'
-          : '...'
-        }
+      <div className="street-hud street-hud-bottom">
+        <button type="button" className="street-back" onClick={onBack}>← {t('street.home')}</button>
+        <span>{phase === 'idle' ? t('street.tapHint') : t('street.walking')}</span>
+        <div className="compass">N</div>
       </div>
     </div>
   );

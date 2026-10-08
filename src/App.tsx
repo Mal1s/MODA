@@ -46,6 +46,12 @@ export default function App() {
   const [equipped, setEquipped] = useState<EquippedItems>({});
   const [floatingCoins, setFloatingCoins] = useState<FloatingCoin[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [autoStreetTheme, setAutoStreetTheme] = useState<boolean>(() => localStorage.getItem('fc-auto-street-theme') !== 'false');
+  const [manualNight, setManualNight] = useState<boolean>(() => localStorage.getItem('fc-manual-night') === 'true');
+  const [isNight, setIsNight] = useState(() => {
+    const hour = new Date().getHours();
+    return hour < 7 || hour >= 19;
+  });
   const coinIdRef = useRef(0);
   const energyRef = useRef(energy);
   energyRef.current = energy;
@@ -108,6 +114,22 @@ export default function App() {
   }, [view]);
 
   useEffect(() => {
+    const updateStreetTheme = () => {
+      if (!autoStreetTheme) { setIsNight(manualNight); return; }
+      const hour = new Date().getHours();
+      setIsNight(hour < 7 || hour >= 19);
+    };
+    updateStreetTheme();
+    const timer = window.setInterval(updateStreetTheme, 60000);
+    return () => window.clearInterval(timer);
+  }, [autoStreetTheme, manualNight]);
+
+  useEffect(() => {
+    localStorage.setItem('fc-auto-street-theme', String(autoStreetTheme));
+    localStorage.setItem('fc-manual-night', String(manualNight));
+  }, [autoStreetTheme, manualNight]);
+
+  useEffect(() => {
     const setVh = () => document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
     setVh();
     window.addEventListener('resize', setVh);
@@ -160,13 +182,13 @@ export default function App() {
         </div>
         {scene === 'select' && <CharacterSelect onSelect={handleGenderSelect} />}
         {scene === 'room' && gender && <RoomScene gender={gender} coins={coins} energy={energy} maxEnergy={ENERGY_MAX} inventory={inventory} onCoinClick={handleCoinClick} onWardrobeReached={() => setScene('wardrobe')} onDoorReached={() => setScene('street')} onClosetClick={() => setScene('closet')} />}
-        {scene === 'street' && gender && <StreetScene gender={gender} coins={coins} onBack={() => setScene('room')} onMarketReached={() => setScene('market')} onAuctionReached={() => setScene('auction')} onFusionReached={() => setScene('fusion')} />}
+        {scene === 'street' && gender && <StreetScene gender={gender} coins={coins} isNight={isNight} onBack={() => setScene('room')} onMarketReached={() => setScene('market')} onAuctionReached={() => setScene('auction')} onFusionReached={() => setScene('fusion')} />}
         {scene === 'market' && <MarketScene coins={coins} onBack={() => setScene('street')} onBuy={handleMarketBuy} />}
         {scene === 'auction' && <AuctionScene coins={coins} onBack={() => setScene('street')} onWin={handleAuctionWin} />}
         {scene === 'fusion' && <FusionScene inventory={inventory} coins={coins} onSpend={amount => setCoins(value => Math.max(0, value - amount))} onBack={() => setScene('street')} onResult={handleFusionResult} />}
         {scene === 'wardrobe' && <CaseOpening coins={coins} onSpend={amount => setCoins(value => Math.max(0, value - amount))} onItemWon={handleItemWon} onClose={() => setScene('room')} />}
         {scene === 'closet' && <ClosetView inventory={inventory} equipped={equipped} gender={gender ?? 'female'} onEquip={handleEquip} onClose={() => setScene('room')} />}
-        <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} onSignOut={handleSignOut} />
+        <SettingsPanel open={settingsOpen} onClose={() => setSettingsOpen(false)} onSignOut={handleSignOut} autoStreetTheme={autoStreetTheme} manualNight={manualNight} onAutoStreetThemeChange={setAutoStreetTheme} onManualNightChange={setManualNight} />
       </div>
     </div>
   );
