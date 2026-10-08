@@ -1,5 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useI18n } from './i18n';
+import caseBasicImg from './assets/items/common/1._Базовыи_(200🪙).png';
+import bootsImg from './assets/items/rare/Редкая_—_Ботильоны_на_массивном_каблуке.png';
 
 interface LandingPageProps {
   onPlayDemo: () => void;
@@ -94,6 +96,17 @@ export default function LandingPage({ onPlayDemo }: LandingPageProps) {
         <div style={{ position: 'absolute', top: '20%', left: '50%', width: '70vw', height: '70vw', maxWidth: 700, background: 'radial-gradient(circle, rgba(124,58,237,0.35) 0%, rgba(192,38,211,0.15) 40%, transparent 70%)', borderRadius: '50%', animation: 'orb-pulse 6s ease-in-out infinite', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: '10%', right: '-10%', width: '40vw', height: '40vw', maxWidth: 400, background: 'radial-gradient(circle, rgba(251,191,36,0.12) 0%, transparent 65%)', borderRadius: '50%', pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', top: '5%', left: '-5%', width: '30vw', height: '30vw', maxWidth: 300, background: 'radial-gradient(circle, rgba(96,165,250,0.1) 0%, transparent 65%)', borderRadius: '50%', pointerEvents: 'none' }} />
+
+        <div className="hero-showcase hero-showcase-left">
+          <div className="hero-showcase-art"><img src={caseBasicImg} alt="Fashion case" /></div>
+          <span className="hero-showcase-rarity">✦ {t('rarity.legendary')}</span>
+          <strong>{t('hero.caseCaption')}</strong>
+        </div>
+        <div className="hero-showcase hero-showcase-right">
+          <div className="hero-showcase-art"><img src={bootsImg} alt="Fashion boots" /></div>
+          <span className="hero-showcase-rarity hero-showcase-blue">◆ {t('rarity.rare')}</span>
+          <strong>{t('hero.itemCaption')}</strong>
+        </div>
 
         {[...Array(20)].map((_, i) => (
           <div key={i} style={{ position: 'absolute', width: Math.random() * 3 + 1, height: Math.random() * 3 + 1, background: ['#f0abfc', '#fbbf24', '#93c5fd', 'white'][i % 4], borderRadius: '50%', left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%`, opacity: Math.random() * 0.5 + 0.2, animation: `float-up ${4 + Math.random() * 6}s ease-in-out infinite`, animationDelay: `${Math.random() * 5}s`, pointerEvents: 'none' }} />
@@ -222,7 +235,7 @@ export default function LandingPage({ onPlayDemo }: LandingPageProps) {
                   <button type="submit" style={{ padding: '12px 22px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #7c3aed, #c026d3)', color: 'white', fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'Poppins, sans-serif', whiteSpace: 'nowrap' }}>{t('footer.emailButton')}</button>
                 </form>
               ) : (
-                <div style={{ color: '#22c55e', fontSize: '0.9rem' }}>✓ {t('footer.emailSent')}</div>
+                <div className="email-success"><span>✓</span><div><strong>{t('footer.emailSentTitle')}</strong><p>{t('footer.emailSent')}</p></div></div>
               )}
             </div>
           </div>
