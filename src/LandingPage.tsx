@@ -76,7 +76,7 @@ export default function LandingPage({ onPlayDemo }: LandingPageProps) {
       {/* ─── NAV ─── */}
       <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, padding: '0 24px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: scrolled ? 'rgba(5,3,15,0.92)' : 'transparent', backdropFilter: scrolled ? 'blur(16px)' : 'none', borderBottom: scrolled ? '1px solid rgba(192,132,252,0.12)' : '1px solid transparent', transition: 'all 0.3s ease' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
-          <div style={{ width: 36, height: 36, background: 'linear-gradient(135deg, #7c3aed, #c026d3)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', boxShadow: '0 0 14px rgba(192,38,211,0.4)' }}>✦</div>
+          <span className="landing-logo-star">✦</span>
           <span style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.1rem', fontWeight: 700, color: '#f0e6ff', animation: 'nav-logo-glow 3s ease-in-out infinite', letterSpacing: '0.05em' }}>Fashion Cases</span>
         </div>
 
@@ -120,6 +120,7 @@ export default function LandingPage({ onPlayDemo }: LandingPageProps) {
           <div key={i} style={{ position: 'absolute', width: Math.random() * 3 + 1, height: Math.random() * 3 + 1, background: ['#f0abfc', '#fbbf24', '#93c5fd', 'white'][i % 4], borderRadius: '50%', left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%`, opacity: Math.random() * 0.5 + 0.2, animation: `float-up ${4 + Math.random() * 6}s ease-in-out infinite`, animationDelay: `${Math.random() * 5}s`, pointerEvents: 'none' }} />
         ))}
 
+        <div className="hero-center-card">
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(192,132,252,0.1)', border: '1px solid rgba(192,132,252,0.25)', borderRadius: 30, padding: '6px 16px', fontSize: '0.72rem', letterSpacing: '0.15em', color: '#c4b5fd', textTransform: 'uppercase', marginBottom: 28, animation: 'fade-in 1s ease forwards' }}>
           <span style={{ color: '#f0abfc' }}>✦</span>{t('hero.badge')}<span style={{ color: '#f0abfc' }}>✦</span>
         </div>
@@ -137,8 +138,9 @@ export default function LandingPage({ onPlayDemo }: LandingPageProps) {
           <button onClick={onPlayDemo} style={{ background: 'linear-gradient(135deg, #7c3aed, #c026d3)', border: 'none', borderRadius: 50, padding: '16px 36px', color: 'white', fontSize: '1rem', fontWeight: 700, fontFamily: 'Poppins, sans-serif', cursor: 'pointer', letterSpacing: '0.04em', boxShadow: '0 0 40px rgba(192,38,211,0.45), 0 8px 30px rgba(0,0,0,0.4)', transition: 'transform 0.2s, box-shadow 0.2s' }} onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-3px) scale(1.03)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 60px rgba(192,38,211,0.6), 0 12px 40px rgba(0,0,0,0.4)'; }} onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0) scale(1)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 40px rgba(192,38,211,0.45), 0 8px 30px rgba(0,0,0,0.4)'; }}>✦ {t('hero.cta')}</button>
         </div>
         <p style={{ color: 'rgba(240,230,255,0.25)', fontSize: '0.72rem', marginTop: 14, animation: 'fade-in 1.5s ease 0.5s both' }}>{t('hero.ctaSub')}</p>
+        </div>
 
-        <div style={{ position: 'absolute', bottom: 28, left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, animation: 'fade-in 1.5s ease 1s both' }}>
+        <div className="hero-scroll-hint" style={{ position: 'absolute', bottom: 28, left: '50%', transform: 'translateX(-50%)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, animation: 'fade-in 1.5s ease 1s both' }}>
           <div style={{ color: 'rgba(240,230,255,0.3)', fontSize: '0.62rem', letterSpacing: '0.12em', textTransform: 'uppercase' }}>{t('hero.scroll')}</div>
           <div style={{ width: 1, height: 30, background: 'linear-gradient(180deg, rgba(192,132,252,0.5), transparent)' }} />
         </div>
@@ -166,7 +168,7 @@ export default function LandingPage({ onPlayDemo }: LandingPageProps) {
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
             {features.map((f, i) => (
-              <div key={f.title} className={`reveal reveal-delay-${(i % 3) + 1} card-hover`} style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 20, padding: '28px 24px', position: 'relative', overflow: 'hidden' }}>
+              <div key={f.title} className={`reveal reveal-delay-${(i % 3) + 1} card-hover feature-card`} style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 20, padding: '28px 24px', position: 'relative', overflow: 'hidden' }}>
                 <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg, transparent, ${f.color}40, transparent)` }} />
                 <div style={{ fontSize: '2rem', marginBottom: 16, filter: `drop-shadow(0 0 8px ${f.color}60)` }}>{f.icon}</div>
                 <h3 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.1rem', fontWeight: 700, color: '#f0e6ff', margin: '0 0 10px' }}>{f.title}</h3>
