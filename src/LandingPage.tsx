@@ -25,6 +25,7 @@ export default function LandingPage({ onPlayDemo }: LandingPageProps) {
   const [email, setEmail] = useState('');
   const [emailSent, setEmailSent] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [landingTheme, setLandingTheme] = useState<'dark' | 'light'>(() => localStorage.getItem('fc-landing-theme') === 'light' ? 'light' : 'dark');
 
   useEffect(() => {
     document.documentElement.classList.add('landing');
@@ -37,6 +38,10 @@ export default function LandingPage({ onPlayDemo }: LandingPageProps) {
       window.removeEventListener('scroll', onScroll);
     };
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem('fc-landing-theme', landingTheme);
+  }, [landingTheme]);
 
   const handleEmail = (e: React.FormEvent) => { e.preventDefault(); if (email) setEmailSent(true); };
 
@@ -67,7 +72,7 @@ export default function LandingPage({ onPlayDemo }: LandingPageProps) {
   const navLinks = [t('nav.features'), t('nav.rarities'), t('nav.howItWorks'), t('nav.play')];
 
   return (
-    <div className="landing-root">
+    <div className={`landing-root ${landingTheme === 'light' ? 'landing-light' : ''}`}>
       {/* ─── NAV ─── */}
       <nav style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, padding: '0 24px', height: 64, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: scrolled ? 'rgba(5,3,15,0.92)' : 'transparent', backdropFilter: scrolled ? 'blur(16px)' : 'none', borderBottom: scrolled ? '1px solid rgba(192,132,252,0.12)' : '1px solid transparent', transition: 'all 0.3s ease' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
@@ -81,6 +86,9 @@ export default function LandingPage({ onPlayDemo }: LandingPageProps) {
               <a key={label} href={`#${label.toLowerCase().replace(/ /g, '-')}`} onClick={label === t('nav.play') ? (e) => { e.preventDefault(); onPlayDemo(); } : undefined} style={{ color: label === t('nav.play') ? '#f0abfc' : 'rgba(240,230,255,0.6)', textDecoration: 'none', fontSize: '0.82rem', letterSpacing: '0.04em', fontWeight: label === t('nav.play') ? 600 : 400, transition: 'color 0.2s' }}>{label}</a>
             ))}
           </div>
+          <button className="landing-theme-toggle" type="button" onClick={() => setLandingTheme(value => value === 'dark' ? 'light' : 'dark')} aria-label={landingTheme === 'dark' ? t('theme.light') : t('theme.dark')}>
+            <span>{landingTheme === 'dark' ? '☼' : '◐'}</span>{landingTheme === 'dark' ? t('theme.light') : t('theme.dark')}
+          </button>
           {/* Language toggle */}
           <button onClick={() => setLang(lang === 'ru' ? 'en' : 'ru')} style={{ display: 'flex', alignItems: 'center', gap: 5, background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(192,132,252,0.2)', borderRadius: 16, padding: '6px 12px', color: '#c4b5fd', fontSize: '0.72rem', cursor: 'pointer', fontWeight: 600 }}>
             <span style={{ fontSize: '0.9rem' }}>{lang === 'ru' ? '🇷🇺' : '🇬🇧'}</span>

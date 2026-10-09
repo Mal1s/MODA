@@ -11,6 +11,8 @@ const ru: Dict = {
   'nav.howItWorks': 'Как играть',
   'nav.play': 'Играть',
   'nav.playDemo': 'Играть демо',
+  'theme.light': 'Светлая',
+  'theme.dark': 'Тёмная',
   // Hero
   'hero.badge': 'Мода · Гача · Коллекция',
   'hero.title1': 'МОДНЫЕ',
@@ -289,6 +291,8 @@ const en: Dict = {
   'nav.howItWorks': 'How it Works',
   'nav.play': 'Play',
   'nav.playDemo': 'Play Demo',
+  'theme.light': 'Light',
+  'theme.dark': 'Dark',
   'hero.badge': 'Fashion · Gacha · Collect',
   'hero.title1': 'FASHION',
   'hero.title2': 'CASES',
