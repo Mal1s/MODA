@@ -95,7 +95,7 @@ export default function LandingPage({ onPlayDemo }: LandingPageProps) {
             <span>{lang === 'ru' ? 'RU' : 'EN'}</span>
             <span style={{ opacity: 0.4, fontSize: '0.65rem' }}>↔</span>
           </button>
-          <button onClick={onPlayDemo} style={{ background: 'linear-gradient(135deg, #7c3aed, #c026d3)', border: 'none', borderRadius: 22, padding: '8px 20px', color: 'white', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', letterSpacing: '0.04em', boxShadow: '0 0 16px rgba(192,38,211,0.35)', transition: 'transform 0.2s, box-shadow 0.2s' }} onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.05)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 24px rgba(192,38,211,0.55)'; }} onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 16px rgba(192,38,211,0.35)'; }}>{t('nav.playDemo')}</button>
+          <button className="landing-header-button" onClick={onPlayDemo} style={{ background: 'linear-gradient(135deg, #7c3aed, #c026d3)', border: 'none', borderRadius: 22, padding: '8px 20px', color: 'white', fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', letterSpacing: '0.04em', boxShadow: '0 0 16px rgba(192,38,211,0.35)', transition: 'transform 0.2s, box-shadow 0.2s' }} onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1.05)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 24px rgba(192,38,211,0.55)'; }} onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'scale(1)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 16px rgba(192,38,211,0.35)'; }}>{t('nav.playDemo')}</button>
         </div>
       </nav>
 
@@ -126,8 +126,8 @@ export default function LandingPage({ onPlayDemo }: LandingPageProps) {
         </div>
 
         <h1 style={{ fontFamily: 'Playfair Display, serif', fontSize: 'clamp(3rem, 10vw, 7.5rem)', fontWeight: 900, margin: '0 0 0', lineHeight: 0.95, letterSpacing: '-0.02em', animation: 'slide-up 0.9s ease forwards' }}>
-          <span style={{ display: 'block', color: '#f0e6ff' }}>{t('hero.title1')}</span>
-          <span className="gradient-text" style={{ display: 'block' }}>{t('hero.title2')}</span>
+          <span className="hero-title-primary" style={{ display: 'block', color: '#f0e6ff' }}>{t('hero.title1')}</span>
+          <span className="gradient-text hero-title-accent" style={{ display: 'block' }}>{t('hero.title2')}</span>
         </h1>
 
         <p style={{ fontFamily: 'Playfair Display, serif', fontSize: 'clamp(1rem, 2.5vw, 1.4rem)', color: 'rgba(240,230,255,0.55)', fontStyle: 'italic', margin: '20px 0 36px', letterSpacing: '0.08em', animation: 'slide-up 0.9s ease 0.15s both forwards' }}>{t('hero.tagline')}</p>
@@ -135,7 +135,7 @@ export default function LandingPage({ onPlayDemo }: LandingPageProps) {
         <p style={{ fontSize: 'clamp(0.9rem, 2vw, 1.05rem)', color: 'rgba(240,230,255,0.5)', maxWidth: 520, lineHeight: 1.7, margin: '0 0 44px', animation: 'slide-up 0.9s ease 0.25s both forwards' }}>{t('hero.desc')}</p>
 
         <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', justifyContent: 'center', animation: 'slide-up 0.9s ease 0.35s both forwards' }}>
-          <button onClick={onPlayDemo} style={{ background: 'linear-gradient(135deg, #7c3aed, #c026d3)', border: 'none', borderRadius: 50, padding: '16px 36px', color: 'white', fontSize: '1rem', fontWeight: 700, fontFamily: 'Poppins, sans-serif', cursor: 'pointer', letterSpacing: '0.04em', boxShadow: '0 0 40px rgba(192,38,211,0.45), 0 8px 30px rgba(0,0,0,0.4)', transition: 'transform 0.2s, box-shadow 0.2s' }} onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-3px) scale(1.03)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 60px rgba(192,38,211,0.6), 0 12px 40px rgba(0,0,0,0.4)'; }} onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0) scale(1)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 40px rgba(192,38,211,0.45), 0 8px 30px rgba(0,0,0,0.4)'; }}>✦ {t('hero.cta')}</button>
+          <button className="landing-primary-button" onClick={onPlayDemo} style={{ background: 'linear-gradient(135deg, #7c3aed, #c026d3)', border: 'none', borderRadius: 50, padding: '16px 36px', color: 'white', fontSize: '1rem', fontWeight: 700, fontFamily: 'Poppins, sans-serif', cursor: 'pointer', letterSpacing: '0.04em', boxShadow: '0 0 40px rgba(192,38,211,0.45), 0 8px 30px rgba(0,0,0,0.4)', transition: 'transform 0.2s, box-shadow 0.2s' }} onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-3px) scale(1.03)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 60px rgba(192,38,211,0.6), 0 12px 40px rgba(0,0,0,0.4)'; }} onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0) scale(1)'; (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 40px rgba(192,38,211,0.45), 0 8px 30px rgba(0,0,0,0.4)'; }}>✦ {t('hero.cta')}</button>
         </div>
         <p style={{ color: 'rgba(240,230,255,0.25)', fontSize: '0.72rem', marginTop: 14, animation: 'fade-in 1.5s ease 0.5s both' }}>{t('hero.ctaSub')}</p>
         </div>
@@ -164,14 +164,14 @@ export default function LandingPage({ onPlayDemo }: LandingPageProps) {
         <div style={{ maxWidth: 1100, margin: '0 auto' }}>
           <div className="reveal" style={{ textAlign: 'center', marginBottom: 60 }}>
             <p style={{ color: '#c084fc', fontSize: '0.72rem', letterSpacing: '0.2em', textTransform: 'uppercase', marginBottom: 12 }}>{t('features.subtitle')}</p>
-            <h2 style={{ fontFamily: 'Playfair Display, serif', fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: 900, margin: 0, color: '#f0e6ff' }}>{t('features.title')}</h2>
+            <h2 className="feature-section-title" style={{ fontFamily: 'Playfair Display, serif', fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: 900, margin: 0, color: '#f0e6ff' }}>{t('features.title')}</h2>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 16 }}>
             {features.map((f, i) => (
               <div key={f.title} className={`reveal reveal-delay-${(i % 3) + 1} card-hover feature-card`} style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: 20, padding: '28px 24px', position: 'relative', overflow: 'hidden' }}>
                 <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg, transparent, ${f.color}40, transparent)` }} />
-                <div style={{ fontSize: '2rem', marginBottom: 16, filter: `drop-shadow(0 0 8px ${f.color}60)` }}>{f.icon}</div>
-                <h3 style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.1rem', fontWeight: 700, color: '#f0e6ff', margin: '0 0 10px' }}>{f.title}</h3>
+                <div className="feature-icon" style={{ color: f.color, fontSize: '2rem', marginBottom: 16, filter: `drop-shadow(0 0 8px ${f.color}60)` }}>{f.icon}</div>
+                <h3 className="feature-title" style={{ fontFamily: 'Playfair Display, serif', fontSize: '1.1rem', fontWeight: 700, color: '#f0e6ff', margin: '0 0 10px' }}>{f.title}</h3>
                 <p style={{ color: 'rgba(240,230,255,0.5)', fontSize: '0.85rem', lineHeight: 1.7, margin: 0 }}>{f.desc}</p>
               </div>
             ))}
