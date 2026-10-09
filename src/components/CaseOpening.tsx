@@ -224,7 +224,7 @@ export default function CaseOpening({ coins, onSpend, onItemWon, onClose }: Case
           <div style={{ marginBottom: 14, padding: 12, border: `1px solid ${selectedCase.glowColor}55`, borderRadius: 16, background: `${selectedCase.glowColor}12` }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <div style={{ width: 88, height: 88, display: 'grid', placeItems: 'center', borderRadius: 12, background: 'rgba(255,255,255,.08)' }}>
-                {selectedCase.image ? <img src={selectedCase.image} alt={selectedCase.name} draggable={false} style={{ maxWidth: '88%', maxHeight: '88%', objectFit: 'contain' }} /> : <span style={{ fontSize: '2.5rem' }}>{selectedCase.emoji}</span>}
+                {selectedCase.image ? <img className="asset-cutout" src={selectedCase.image} alt={selectedCase.name} draggable={false} style={{ maxWidth: '88%', maxHeight: '88%', objectFit: 'contain' }} /> : <span style={{ fontSize: '2.5rem' }}>{selectedCase.emoji}</span>}
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ color: '#f0e6ff', fontFamily: 'Playfair Display, serif', fontWeight: 700, fontSize: '1rem' }}>{selectedCase.name}</div>
@@ -238,7 +238,7 @@ export default function CaseOpening({ coins, onSpend, onItemWon, onClose }: Case
               })}
             </div>
             <div style={{ display: 'flex', gap: 6, overflowX: 'auto', marginTop: 10, paddingBottom: 2 }}>
-              {ITEMS.filter(item => (selectedCase.dropChances[item.rarity] ?? 0) > 0).map(item => <div key={item.id} title={item.name} style={{ width: 42, height: 42, flexShrink: 0, display: 'grid', placeItems: 'center', borderRadius: 9, background: RARITY_CONFIG[item.rarity].bgColor, border: `1px solid ${RARITY_CONFIG[item.rarity].color}45` }}>{item.image ? <img src={item.image} alt="" draggable={false} style={{ maxWidth: '85%', maxHeight: '85%', objectFit: 'contain' }} /> : item.emoji}</div>)}
+              {ITEMS.filter(item => (selectedCase.dropChances[item.rarity] ?? 0) > 0).map(item => <div key={item.id} title={item.name} style={{ width: 42, height: 42, flexShrink: 0, display: 'grid', placeItems: 'center', borderRadius: 9, background: RARITY_CONFIG[item.rarity].bgColor, border: `1px solid ${RARITY_CONFIG[item.rarity].color}45` }}>{item.image ? <img className="asset-cutout" src={item.image} alt="" draggable={false} style={{ maxWidth: '85%', maxHeight: '85%', objectFit: 'contain' }} /> : item.emoji}</div>)}
             </div>
           </div>
 
@@ -271,7 +271,7 @@ export default function CaseOpening({ coins, onSpend, onItemWon, onClose }: Case
                     filter: c.premium ? 'drop-shadow(0 0 8px #f0abfc)' : isSelected ? `drop-shadow(0 0 6px ${c.glowColor})` : 'none',
                     flexShrink: 0,
                   }}>
-                    {c.image ? <img src={c.image} alt={c.name} draggable={false} style={{ maxWidth: 54, maxHeight: 54, objectFit: 'contain' }} /> : c.emoji}
+                    {c.image ? <img className="asset-cutout" src={c.image} alt={c.name} draggable={false} style={{ maxWidth: 54, maxHeight: 54, objectFit: 'contain' }} /> : c.emoji}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{

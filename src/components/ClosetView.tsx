@@ -70,8 +70,8 @@ export default function ClosetView({ inventory, equipped, gender, onEquip, onClo
               return (
                 <div key={item.id} className="closet-item-card" onClick={() => setSelected(isSelected ? null : item)} style={{ borderColor: isSelected ? config.color : undefined, boxShadow: isSelected ? config.glow : undefined }}>
                   {isWorn && <span className="worn-badge">WORN</span>}
-                  <div className="closet-item-image" style={{ background: config.bgColor }}>
-                    {item.image ? <img src={item.image} alt={item.name} /> : <span>{item.emoji}</span>}
+                  <div className={`closet-item-image rarity-glow rarity-${item.rarity}`} data-rarity={item.rarity} style={{ background: config.bgColor }}>
+                    {item.image ? <img className="asset-cutout" src={item.image} alt={item.name} /> : <span>{item.emoji}</span>}
                   </div>
                   <strong>{item.name}</strong>
                   <small style={{ color: config.color }}>{config.label}</small>

@@ -98,12 +98,12 @@ export default function LandingPage({ onPlayDemo }: LandingPageProps) {
         <div style={{ position: 'absolute', top: '5%', left: '-5%', width: '30vw', height: '30vw', maxWidth: 300, background: 'radial-gradient(circle, rgba(96,165,250,0.1) 0%, transparent 65%)', borderRadius: '50%', pointerEvents: 'none' }} />
 
         <div className="hero-showcase hero-showcase-left">
-          <div className="hero-showcase-art"><img src={caseBasicImg} alt="Fashion case" /></div>
+          <div className="hero-showcase-art rarity-glow rarity-legendary"><img className="asset-cutout" src={caseBasicImg} alt="Fashion case" /></div>
           <span className="hero-showcase-rarity">✦ {t('rarity.legendary')}</span>
           <strong>{t('hero.caseCaption')}</strong>
         </div>
         <div className="hero-showcase hero-showcase-right">
-          <div className="hero-showcase-art"><img src={bootsImg} alt="Fashion boots" /></div>
+          <div className="hero-showcase-art rarity-glow rarity-rare"><img className="asset-cutout" src={bootsImg} alt="Fashion boots" /></div>
           <span className="hero-showcase-rarity hero-showcase-blue">◆ {t('rarity.rare')}</span>
           <strong>{t('hero.itemCaption')}</strong>
         </div>
